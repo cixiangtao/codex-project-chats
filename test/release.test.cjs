@@ -86,3 +86,16 @@ test('unconfigured automation stops before using a GitHub credential', () => {
     assert.equal(fs.readFileSync(output, 'utf8'), 'mode=disabled\n');
   } finally { fs.rmSync(folder, { recursive: true, force: true }); }
 });
+
+test('manual App verification works with publishing disabled and cannot route into publication', () => {
+  const os = require('node:os'); const path = require('node:path');
+  const { execFileSync } = require('node:child_process');
+  const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'project-chats-app-check-'));
+  const output = path.join(folder, 'output');
+  const env = { ...process.env, GITHUB_REPOSITORY: 'cixiangtao/codex-project-chats', GITHUB_REF: 'refs/heads/main', GITHUB_EVENT_NAME: 'workflow_dispatch', VERIFY_RELEASE_APP: 'true', RELEASE_ENABLED: 'false', GITHUB_OUTPUT: output, GH_TOKEN: '' };
+  try {
+    execFileSync(process.execPath, [require.resolve('../scripts/release.mjs'), 'plan'], { env });
+    assert.equal(fs.readFileSync(output, 'utf8'), 'mode=app-check\n');
+    assert.throws(() => execFileSync(process.execPath, [require.resolve('../scripts/release.mjs'), 'plan'], { env: { ...env, GITHUB_EVENT_NAME: 'push' }, stdio: 'pipe' }));
+  } finally { fs.rmSync(folder, { recursive: true, force: true }); }
+});
