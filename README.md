@@ -71,7 +71,7 @@ The VSIX is generated in the repository root. There are no runtime npm dependenc
 
 CI runs the tests on Linux, macOS, and Windows and inspects a VSIX on Linux. One POSIX executable fixture is explicitly skipped on Windows. These checks do not replace a real VS Code/official Codex integration test. Live-history and extension-host tests are opt-in; see [CONTRIBUTING.md](https://github.com/cixiangtao/codex-project-chats/blob/main/CONTRIBUTING.md).
 
-Repository documentation and metadata may be ahead of the last Marketplace package; editing this repository does not update an already uploaded VSIX. CI does not publish to Marketplace or create GitHub Releases. The initial 0.1.1 package was submitted manually; see [the release boundary](https://github.com/cixiangtao/codex-project-chats/blob/main/CONTRIBUTING.md#release-boundary) before preparing a later version.
+Repository documentation and metadata may be ahead of the last Marketplace package; editing this repository does not update an already uploaded VSIX. CI itself does not publish. A separate [Marketplace release workflow](https://github.com/cixiangtao/codex-project-chats/blob/main/docs/releasing.md) creates version PRs and publishes only after the approved version PR is merged. It remains disabled until its dedicated GitHub App and Microsoft Entra identities are configured. No GitHub Release or npm package is created. The initial 0.1.1 package was submitted manually.
 
 ## Support and license
 
