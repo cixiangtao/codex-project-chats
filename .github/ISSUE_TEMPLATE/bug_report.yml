@@ -1,0 +1,27 @@
+name: Bug report
+description: Report a reproducible problem with project grouping or conversation navigation.
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: "Do not include real conversation IDs, transcripts, credentials, personal paths, or unredacted logs. For vulnerabilities, use the Security tab's private reporting option. English and Chinese are welcome."
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Extension, VS Code and official Codex versions; OS/architecture; local, WSL, SSH or container workspace.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Use sample data and anonymized paths. Does the same conversation open directly in official Codex?
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true

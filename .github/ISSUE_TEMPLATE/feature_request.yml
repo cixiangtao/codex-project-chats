@@ -1,0 +1,17 @@
+name: Feature request
+description: Suggest an improvement to grouping, search, or navigation.
+title: "[Feature]: "
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      description: Describe the workflow using synthetic examples; omit private conversation details.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior and alternatives
+    validations:
+      required: true

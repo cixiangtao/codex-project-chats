@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability privately
+    url: https://github.com/cixiangtao/codex-project-chats/security/advisories/new
+    about: Do not publish sensitive reports in Issues.
