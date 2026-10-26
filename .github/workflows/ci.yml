@@ -33,6 +33,8 @@ jobs:
       - run: npm ci
       - run: npm run check
       - run: npm test
+      - run: node scripts/release.mjs versions
+      - run: python3 -m unittest discover -s test -p '*_test.py'
 
   package:
     name: Package

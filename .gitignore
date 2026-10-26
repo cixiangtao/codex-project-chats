@@ -9,3 +9,8 @@ dist/
 .idea/
 .vscode/
 coverage/
+__pycache__/
+*.pyc
+release-artifact/
+release-identity.json
+SHA256SUMS.txt

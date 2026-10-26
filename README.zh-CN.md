@@ -50,6 +50,10 @@
 - 安全漏洞请使用[私密安全报告](https://github.com/cixiangtao/codex-project-chats/security/advisories/new)，不要公开会话记录或凭据。
 - 参与开发请参阅 [CONTRIBUTING.md](https://github.com/cixiangtao/codex-project-chats/blob/main/CONTRIBUTING.md)。采用 [MIT 许可](https://github.com/cixiangtao/codex-project-chats/blob/main/LICENSE)。
 
+## 自动发布
+
+[发布工作流](https://github.com/cixiangtao/codex-project-chats/blob/main/docs/releasing.md)负责生成版本 PR，并且只在该版本 PR 通过 CI 且合并后上传 Marketplace。当前需先配置专用 GitHub App 和微软 Entra 身份，完成前保持停用。不会创建 GitHub Release，也不会发布 npm 包。
+
 ## 开发
 
 需要 Node.js 22+。
