@@ -64,6 +64,7 @@ Creating the GitHub App, installing it, and granting the Entra identity publishe
 ## Activation and verification
 
 - Confirm the GitHub App installation and Marketplace Contributor membership against their actual dashboards.
+- To verify the GitHub side before Entra is available, run **Marketplace release** on `main` with **verify_app=true**. This reads the configured private key in Actions, checks a read-only installation token for exactly this repository, and revokes it after the job. It neither creates a version PR nor uploads, labels, or tags a version. It works while the main publishing switch is disabled.
 - Confirm `marketplace` environment branch protection and the exact OIDC subject.
 - Set repository variable `RELEASE_AUTOMATION_ENABLED=true` only after these prerequisites are ready.
 - Run **Marketplace release** manually with no `release_pr` to exercise the controller. The bootstrap SHA excludes the initial source import from release calculations. Configuration-only `ci:`/`docs:` commits should not publish a version.

@@ -95,6 +95,11 @@ async function main() {
   if (command === 'versions') { console.log(`Version files agree: ${localVersion()}`); return; }
   assertWorkflow();
   if (command === 'plan') {
+    if (process.env.VERIFY_RELEASE_APP === 'true') {
+      assert.equal(process.env.GITHUB_EVENT_NAME, 'workflow_dispatch', 'App checks must be requested manually.');
+      output({ mode: 'app-check' });
+      return;
+    }
     if (process.env.RELEASE_ENABLED !== 'true') {
       output({ mode: 'disabled' });
       console.log('Release automation is disabled. Complete docs/releasing.md before enabling it.');

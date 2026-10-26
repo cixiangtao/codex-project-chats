@@ -5,6 +5,10 @@ on:
     branches: [main]
   workflow_dispatch:
     inputs:
+      verify_app:
+        description: 'Check GitHub App credentials and repository scope without creating PRs or publishing'
+        default: false
+        type: boolean
       release_pr:
         description: 'Merged release PR number for recovery; leave empty to maintain the release PR'
         required: false
@@ -49,7 +53,39 @@ jobs:
           RELEASE_ENABLED: ${{ vars.RELEASE_AUTOMATION_ENABLED }}
           RELEASE_APP_SLUG: ${{ vars.RELEASE_APP_SLUG }}
           RELEASE_PR: ${{ inputs.release_pr }}
+          VERIFY_RELEASE_APP: ${{ inputs.verify_app }}
         run: node scripts/release.mjs plan
+
+  app-check:
+    if: needs.plan.outputs.mode == 'app-check'
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        id: app
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: cixiangtao
+          repositories: codex-project-chats
+          permission-contents: read
+      - name: Verify the scoped installation token
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          APP_SLUG: ${{ steps.app.outputs.app-slug }}
+          EXPECTED_SLUG: ${{ vars.RELEASE_APP_SLUG }}
+        run: |
+          node <<'JS'
+          const assert = require('node:assert/strict');
+          const { execFileSync } = require('node:child_process');
+          assert.equal(process.env.APP_SLUG, process.env.EXPECTED_SLUG);
+          const scope = JSON.parse(execFileSync('gh', ['api', '/installation/repositories'], { encoding: 'utf8' }));
+          assert.equal(scope.total_count, 1);
+          assert.equal(scope.repositories[0].full_name, 'cixiangtao/codex-project-chats');
+          console.log('Dedicated release App authenticated; token is scoped to the one intended repository.');
+          JS
 
   controller:
     if: needs.plan.outputs.mode == 'controller'
