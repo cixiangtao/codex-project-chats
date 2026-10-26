@@ -1,0 +1,11 @@
+node_modules/
+dist/
+*.vsix
+.DS_Store
+.impeccable/review/
+.env
+.env.*
+*.log
+.idea/
+.vscode/
+coverage/
