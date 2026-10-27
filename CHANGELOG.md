@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.1.1](https://github.com/cixiangtao/codex-project-chats/compare/v1.1.0...v1.1.1) (2026-10-27)
+
+### Bug Fixes
+
+* **view:** 🐛 cancel work when the conversation view closes ([cc42275](https://github.com/cixiangtao/codex-project-chats/commit/cc4227519703397681d3b8e45d971fc53f624272))
+* **webview:** 🐛 preserve focus and keep conversation details current ([81596ea](https://github.com/cixiangtao/codex-project-chats/commit/81596ea8ba76cfa35966e3b27ad17a96a03f63a6))
+* **webview:** 🐛 recover legacy project expansion preferences ([4f846d1](https://github.com/cixiangtao/codex-project-chats/commit/4f846d17f549bbb64fe5373b7fba24c2cb886e47))
+
+### Maintenance
+
+- Build the React and TypeScript interface with Vite, with a synthetic-data development preview and hot updates.
+- Organize Webview components, hooks, styles, and tests by responsibility; preserve the compact conversation layout and theme integration.
+- Adopt pnpm, Vitest, and release-it for local development and release preparation. Marketplace uploads remain manual.
+- Add Oxlint and Oxfmt checks to CI, including import, package/script, and Tailwind class sorting.
+
 ## 1.1.0
 
 - Follow the VS Code display language with Simplified Chinese for Chinese locales and English as the fallback.
