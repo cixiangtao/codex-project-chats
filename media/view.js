@@ -2,6 +2,18 @@
 (() => {
   const host = acquireVsCodeApi();
   const $ = id => document.getElementById(id);
+  const { locale, messages } = JSON.parse($('localization').textContent);
+  const t = (key, values = {}) => messages[key].replace(/\{(\w+)\}/g,
+    (placeholder, name) => values[name] === undefined ? placeholder : String(values[name]));
+  document.documentElement.lang = locale;
+  document.title = t('viewTitle');
+  for (const node of document.querySelectorAll('[data-i18n]')) node.textContent = t(node.dataset.i18n);
+  for (const attribute of ['aria-label', 'placeholder', 'title']) {
+    for (const node of document.querySelectorAll(`[data-i18n-${attribute}]`)) {
+      node.setAttribute(attribute, t(node.getAttribute(`data-i18n-${attribute}`)));
+    }
+  }
+  const countLabel = (kind, count) => t(`${kind}${count === 1 ? 'One' : 'Other'}`, { count });
   const previous = host.getState() || {};
   const collapsed = new Set(previous.collapsed || []);
   const expanded = new Set(previous.expanded || []);
@@ -24,18 +36,20 @@
     svg.append(p); return svg;
   };
   const timeLabel = seconds => {
-    if (!seconds) return '时间未知';
+    if (!seconds) return t('unknownTime');
     const minutes = Math.max(0, Math.floor((Date.now() - seconds * 1000) / 60000));
-    if (minutes < 1) return '刚刚';
-    if (minutes < 60) return `${minutes}分钟前`;
+    if (minutes < 1) return t('now');
+    if (minutes < 60) return t('minutesAgo', { count: minutes });
     const date = new Date(seconds * 1000);
     const now = new Date();
     // Compare calendar days so yesterday stays yesterday across DST changes.
     const dayNumber = value => Date.UTC(value.getFullYear(), value.getMonth(), value.getDate()) / 86400000;
     const days = dayNumber(now) - dayNumber(date);
-    if (days === 0) return `${Math.floor(minutes / 60)}小时前`;
-    if (days === 1) return '昨天';
-    if (days < 7 && days > 1) return `${days}天前`;
+    if (days === 0) return t('hoursAgo', { count: Math.floor(minutes / 60) });
+    if (days === 1) return t('yesterday');
+    if (days < 7 && days > 1) return t('daysAgo', { count: days });
+    if (locale === 'en') return new Intl.DateTimeFormat(locale, { month: 'short', day: 'numeric',
+      ...(date.getFullYear() === now.getFullYear() ? {} : { year: 'numeric' }) }).format(date);
     const monthDay = `${date.getMonth() + 1}/${date.getDate()}`;
     return date.getFullYear() === now.getFullYear() ? monthDay : `${String(date.getFullYear()).slice(-2)}/${monthDay}`;
   };
@@ -64,12 +78,12 @@
       field.append(element('dt', '', label), element('dd', className, value));
       fields.append(field);
     };
-    const timestamp = chat.updatedAt ? new Date(chat.updatedAt * 1000).toLocaleString('zh-CN', {
+    const timestamp = chat.updatedAt ? new Date(chat.updatedAt * 1000).toLocaleString(locale, {
       year: 'numeric', month: '2-digit', day: '2-digit',
       hour: '2-digit', minute: '2-digit', hour12: false,
-    }) : '时间未知';
-    addField('更新于', timestamp, 'chat-tooltip-date');
-    addField('路径', cwd, 'chat-tooltip-path');
+    }) : t('unknownTime');
+    addField(t('updated'), timestamp, 'chat-tooltip-date');
+    addField(t('path'), cwd, 'chat-tooltip-path');
     tooltip.replaceChildren(element('p', 'chat-tooltip-title', chat.title), fields);
     tooltipAnchor = button;
     button.setAttribute('aria-describedby', tooltip.id);
@@ -124,7 +138,7 @@
         const directory = element('span', 'path', group.cwd); directory.title = group.cwd; labels.append(directory);
       }
       summary.append(icon('chevron', 'chevron'), labels);
-      if (group.current) summary.append(element('span', 'current-label', '当前'));
+      if (group.current) summary.append(element('span', 'current-label', t('currentBadge')));
       summary.append(element('span', 'count', String(group.chats.length)));
       details.append(summary);
       for (const chat of group.chats) {
@@ -132,12 +146,12 @@
         button.dataset.id = chat.id;
         const opening = state.opening === chat.id;
         const updated = timeLabel(chat.updatedAt);
-        button.setAttribute('aria-label', `${chat.title}，${opening ? '正在打开 Codex' : `最后更新：${updated}，在 Codex 中打开`}`);
+        button.setAttribute('aria-label', t(opening ? 'openingLabel' : 'openLabel', { title: chat.title, time: updated }));
         button.setAttribute('aria-busy', String(opening));
         button.disabled = Boolean(state.opening);
         if (opening) button.classList.add('opening');
         const body = element('span', 'chat-body');
-        body.append(element('span', 'chat-title', chat.title), element('span', 'chat-time', opening ? '打开中…' : updated));
+        body.append(element('span', 'chat-title', chat.title), element('span', 'chat-time', opening ? t('opening') : updated));
         button.append(body);
         button.addEventListener('pointerenter', () => {
           clearTimeout(tooltipTimer);
@@ -167,19 +181,19 @@
       fragment.append(details);
     }
     $('groups').replaceChildren(fragment);
-    $('summary').textContent = state.busy ? '正在读取对话…' : `${state.groups.length} 个项目 · ${state.count} 条${state.hasMore ? '已加载' : '对话'}`;
+    $('summary').textContent = state.busy ? t('reading') : `${countLabel('projects', state.groups.length)} · ${countLabel(state.hasMore ? 'loaded' : 'chats', state.count)}`;
     const empty = !state.busy && !state.error && !state.count;
     $('empty').hidden = !empty;
     $('error').hidden = !state.error;
     $('error-text').textContent = state.error;
     const missingWorkspace = state.scope === 'current' && !state.hasWorkspace;
-    $('empty-title').textContent = missingWorkspace ? '先打开一个项目文件夹' : state.search ? '没有匹配的对话' : '这里还没有对话';
-    $('empty-detail').textContent = missingWorkspace ? '打开项目后自动显示相关对话，也可以先浏览全部项目。' : state.search ? '试试其他标题关键词，或清空搜索。' : state.scope === 'current' ? '只显示工作目录与当前项目根目录相同的对话。可切换全部项目查看其他目录。' : '使用官方 Codex 创建对话后，点击刷新。';
+    $('empty-title').textContent = t(missingWorkspace ? 'emptyWorkspaceTitle' : state.search ? 'emptySearchTitle' : 'emptyTitle');
+    $('empty-detail').textContent = t(missingWorkspace ? 'emptyWorkspaceDetail' : state.search ? 'emptySearchDetail' : state.scope === 'current' ? 'emptyCurrentDetail' : 'emptyAllDetail');
     $('empty-action').hidden = state.scope !== 'current';
     $('more').hidden = !state.hasMore || Boolean(state.error);
     $('more').disabled = state.busy;
-    $('more').textContent = state.busy ? '正在加载…' : '加载更多对话';
-    $('footer').textContent = state.count ? '点击对话，在官方 Codex 中继续' : '';
+    $('more').textContent = t(state.busy ? 'loading' : 'more');
+    $('footer').textContent = state.count ? t('footer') : '';
     window.scrollTo(0, oldTop);
   };
   $('current').addEventListener('click', () => send('scope', { value: 'current' }));

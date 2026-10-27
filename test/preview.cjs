@@ -1,12 +1,28 @@
 // Generate a standalone preview using the production HTML/CSS/JS with an explicit sample-data bridge.
 const fs = require('node:fs/promises');
 const path = require('node:path');
+const { localization, serializeLocalization } = require('../dist/i18n.js');
 const { groupChats } = require('../dist/model.js');
 async function main() {
+  const language = process.argv[3] || 'zh-CN';
+  const { locale } = localization(language);
   const root = '/projects/codex-project-chats';
   const now = Math.floor(Date.now() / 1000);
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1); yesterday.setHours(12, 0, 0, 0);
+  const englishTitles = {
+    'thread-0001': 'Refine compact rows and conversation details',
+    'thread-0002': 'Fix sidebar search and pagination',
+    'thread-0003': 'Check Codex navigation and sidebar placement',
+    'thread-0009': 'Document installation and everyday use',
+    'thread-0010': 'Review directory matching in multi-root workspaces',
+    'thread-0011': 'Review last year’s compatibility notes',
+    'thread-0004': 'Adjust homepage navigation',
+    'thread-0005': 'Improve the mobile layout',
+    'thread-0006': 'Investigate the sign-in endpoint',
+    'thread-0007': 'Check the company project build',
+    'thread-0008': 'Organize personal project settings',
+  };
   const chats = [
     ['thread-0001', root, '调整对话列表的紧凑布局与悬停详情', now - 180],
     ['thread-0002', root, '修复侧栏搜索与分页', now - 3600],
@@ -19,7 +35,7 @@ async function main() {
     ['thread-0006', '/projects/api-service', '排查登录接口', now - 40000],
     ['thread-0007', '/projects/company/app', '检查公司项目构建', now - 50000],
     ['thread-0008', '/projects/personal/app', '整理个人项目配置', now - 60000],
-  ].map(([id, cwd, title, updatedAt]) => ({ id, cwd, title, updatedAt }));
+  ].map(([id, cwd, title, updatedAt]) => ({ id, cwd, title: locale === 'en' ? englishTitles[id] : title, updatedAt }));
   const groups = groupChats(chats, [root]);
   const media = path.resolve(__dirname, '../media');
   const [template, css, js] = await Promise.all(['view.html', 'view.css', 'view.js'].map(name => fs.readFile(path.join(media, name), 'utf8')));
@@ -27,13 +43,13 @@ async function main() {
   const bridge = `const sampleGroups=${JSON.stringify(groups)};let state={scope:'current',search:'',busy:false,opening:null,error:'',hasMore:false,hasWorkspace:true,lastRefresh:Date.now()};let saved;
 function acquireVsCodeApi(){return{getState:()=>saved,setState:v=>{saved=v},postMessage:msg=>{
 if(msg.type==='scope')state.scope=msg.value;if(msg.type==='search')state.search=msg.value;
-if(msg.type==='open'){document.getElementById('footer').textContent='示例预览：实际安装后在官方 Codex 中打开';return;}
+if(msg.type==='open'){document.getElementById('footer').textContent=${JSON.stringify(locale === 'zh-CN' ? '示例预览：实际安装后在官方 Codex 中打开' : 'Sample preview: installed extension opens official Codex')};return;}
 const groups=sampleGroups.filter(g=>state.scope==='all'||g.current).map(g=>({...g,chats:g.chats.filter(c=>c.title.includes(state.search))})).filter(g=>g.chats.length);
 setTimeout(()=>window.postMessage({type:'state',...state,groups,count:groups.reduce((n,g)=>n+g.chats.length,0)},'*'),20);
 }}}`;
-  const html = template.replace(/<meta http-equiv="Content-Security-Policy"[^>]*>/, '')
+  const html = template.replace('{{LOCALIZATION}}', serializeLocalization(language)).replace(/<meta http-equiv="Content-Security-Policy"[^>]*>/, '')
     .replace('<link rel="stylesheet" href="{{STYLE}}">', `<style>${theme}\n${css}</style>`)
-    .replace('<body>', '<body><aside class="preview-label">Codex Project Chats · 界面预览 / 示例数据</aside>')
+    .replace('<body>', `<body><aside class="preview-label">Codex Project Chats · ${locale === 'zh-CN' ? '界面预览 / 示例数据' : 'Preview / sample data'}</aside>`)
     .replace('<script nonce="{{NONCE}}" src="{{SCRIPT}}"></script>', `<script>${bridge}\n${js}</script>`);
   await fs.writeFile(process.argv[2], html);
 }

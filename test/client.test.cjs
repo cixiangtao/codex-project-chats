@@ -48,8 +48,10 @@ readline.createInterface({input:process.stdin}).on('line', line => {
   } finally { client.dispose(); await fs.rm(folder, { recursive: true, force: true }); }
 });
 
-test('a missing executable produces a recoverable error', async () => {
-  const client = new CodexClient('/missing/codex-executable-for-test');
-  try { await assert.rejects(client.list(undefined, '', null), /无法启动/); }
-  finally { client.dispose(); }
-});
+for (const [language, message] of [['en', /Could not start Codex/], ['zh-CN', /无法启动/]]) {
+  test(`a missing executable produces a recoverable error in ${language}`, async () => {
+    const client = new CodexClient('/missing/codex-executable-for-test', language);
+    try { await assert.rejects(client.list(undefined, '', null), message); }
+    finally { client.dispose(); }
+  });
+}

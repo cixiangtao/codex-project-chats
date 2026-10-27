@@ -1,3 +1,4 @@
+import { createLocalizer, type Localize } from './i18n';
 import path from 'node:path';
 
 /** Minimal thread metadata; conversation bodies never enter the view model. */
@@ -13,14 +14,14 @@ export interface ProjectGroup { key: string; name: string; cwd: string; current:
 export type Scope = 'current' | 'all';
 
 /** Parse untrusted protocol data without passing raw API objects into a webview. */
-export function parsePage(value: unknown): ChatPage {
-  if (!isRecord(value) || !Array.isArray(value.data)) throw new Error('Codex 返回了无法识别的列表格式。');
+export function parsePage(value: unknown, t: Localize = createLocalizer()): ChatPage {
+  if (!isRecord(value) || !Array.isArray(value.data)) throw new Error(t('errorInvalidResponse'));
   const chats: Chat[] = [];
   for (const row of value.data) {
     if (!isRecord(row) || typeof row.id !== 'string' || !/^[a-z0-9_-]{8,128}$/i.test(row.id)
       || typeof row.cwd !== 'string' || !row.cwd) continue;
     const title = typeof row.name === 'string' && row.name.trim() ? row.name : typeof row.preview === 'string' ? row.preview : '';
-    chats.push({ id: row.id, title: title.replace(/\s+/g, ' ').trim().slice(0, 180) || '未命名对话', cwd: row.cwd,
+    chats.push({ id: row.id, title: title.replace(/\s+/g, ' ').trim().slice(0, 180) || t('untitled'), cwd: row.cwd,
       updatedAt: typeof row.updatedAt === 'number' && Number.isFinite(row.updatedAt) ? row.updatedAt : 0 });
   }
   return { chats, nextCursor: typeof value.nextCursor === 'string' && value.nextCursor ? value.nextCursor : null };

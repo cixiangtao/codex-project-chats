@@ -19,7 +19,7 @@
   "extensionDependencies": ["openai.chatgpt"],
   "capabilities": { "untrustedWorkspaces": { "supported": false }, "virtualWorkspaces": false },
   "activationEvents": ["onView:codexProjectChats.list"],
-  "files": ["dist/**", "media/**", "README.md", "README.zh-CN.md", "CHANGELOG.md", "SUPPORT.md", "LICENSE"],
+  "files": ["package.nls*.json", "dist/**", "media/**", "README.md", "README.zh-CN.md", "CHANGELOG.md", "SUPPORT.md", "LICENSE"],
   "scripts": {
     "build": "tsc -p .",
     "check": "tsc -p . --noEmit",
@@ -30,17 +30,17 @@
   "devDependencies": { "@types/node": "^22.0.0", "@types/vscode": "~1.100.0", "@vscode/vsce": "^3.0.0", "typescript": "~5.9.0" },
   "overrides": { "@azure/identity": "4.13.0", "uuid": "11.1.1" },
   "contributes": {
-    "viewsContainers": { "activitybar": [{ "id": "codexProjectChats", "title": "Codex 项目对话", "icon": "media/projects.svg" }] },
-    "views": { "codexProjectChats": [{ "type": "webview", "id": "codexProjectChats.list", "name": "项目对话", "contextualTitle": "Codex Project Chats" }] },
+    "viewsContainers": { "activitybar": [{ "id": "codexProjectChats", "title": "%viewContainer.title%", "icon": "media/projects.svg" }] },
+    "views": { "codexProjectChats": [{ "type": "webview", "id": "codexProjectChats.list", "name": "%view.title%", "contextualTitle": "Codex Project Chats" }] },
     "commands": [
-      { "command": "codexProjectChats.open", "title": "打开项目对话", "category": "Codex Project Chats" },
-      { "command": "codexProjectChats.refresh", "title": "刷新对话", "category": "Codex Project Chats", "icon": "$(refresh)" }
+      { "command": "codexProjectChats.open", "title": "%command.open%", "category": "Codex Project Chats" },
+      { "command": "codexProjectChats.refresh", "title": "%command.refresh%", "category": "Codex Project Chats", "icon": "$(refresh)" }
     ],
     "menus": { "view/title": [{ "command": "codexProjectChats.refresh", "when": "view == codexProjectChats.list", "group": "navigation" }] },
     "configuration": {
       "title": "Codex Project Chats",
       "properties": {
-        "codexProjectChats.cliPath": { "type": "string", "default": "", "scope": "machine", "description": "可选：当前主机的 Codex 可执行文件绝对路径。留空使用官方扩展内置版本。" }
+        "codexProjectChats.cliPath": { "type": "string", "default": "", "scope": "machine", "description": "%configuration.cliPath%" }
       }
     }
   }

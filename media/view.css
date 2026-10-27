@@ -38,8 +38,8 @@ summary:hover { background: var(--vscode-list-hoverBackground); }
 .chat-time { flex: 0 0 auto; max-width: 45%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--vscode-descriptionForeground); font-size: 10px; font-variant-numeric: tabular-nums; text-align: right; }
 .chat-tooltip { --tooltip-pointer-lane: 64px; position: fixed; z-index: 2; width: max-content; max-width: min(280px, calc(100vw - var(--tooltip-pointer-lane) - 12px)); max-height: min(180px, calc(100vh - 16px)); overflow: auto; padding: 8px; border: 1px solid var(--vscode-editorHoverWidget-border, var(--vscode-widget-border, var(--vscode-descriptionForeground))); border-radius: 4px; background: var(--vscode-editorHoverWidget-background, var(--vscode-sideBar-background)); color: var(--vscode-editorHoverWidget-foreground, var(--vscode-foreground)); font-size: 12px; line-height: 1.5; }
 .chat-tooltip-title { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
-.chat-tooltip-fields { display: grid; gap: 4px; margin: 6px 0 0; }
-.chat-tooltip-fields > div { display: grid; grid-template-columns: 3em minmax(0, 1fr); gap: 8px; font-size: 11px; }
+.chat-tooltip-fields { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 8px; margin: 6px 0 0; font-size: 11px; }
+.chat-tooltip-fields > div { display: contents; }
 .chat-tooltip dt { color: var(--vscode-descriptionForeground); }
 .chat-tooltip dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
 .chat-tooltip-date { font-variant-numeric: tabular-nums; }

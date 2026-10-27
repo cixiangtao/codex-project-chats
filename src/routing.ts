@@ -1,3 +1,4 @@
+import { createLocalizer } from './i18n';
 import * as vscode from 'vscode';
 
 /**
@@ -7,9 +8,10 @@ import * as vscode from 'vscode';
  * here limits future compatibility changes to one place, without patching Codex.
  */
 export async function openInCodex(id: string): Promise<void> {
-  if (!/^[a-z0-9_-]{8,128}$/i.test(id)) throw new Error('会话 ID 格式不正确。');
+  const t = createLocalizer(vscode.env.language);
+  if (!/^[a-z0-9_-]{8,128}$/i.test(id)) throw new Error(t('errorInvalidId'));
   const official = vscode.extensions.getExtension('openai.chatgpt');
-  if (!official) throw new Error('请先启用官方 Codex 扩展。');
+  if (!official) throw new Error(t('errorEnableOfficial'));
   await official.activate();
   // For the application URI scheme, asExternalUri creates a callback bound to this
   // window. Sending a raw vscode:// link through the OS can select another window.
@@ -17,5 +19,5 @@ export async function openInCodex(id: string): Promise<void> {
     scheme: vscode.env.uriScheme, authority: 'openai.chatgpt', path: `/local/${id}`,
   }));
   await vscode.commands.executeCommand('chatgpt.openSidebar');
-  if (!await vscode.env.openExternal(target)) throw new Error('官方 Codex 未接受侧栏跳转请求。');
+  if (!await vscode.env.openExternal(target)) throw new Error(t('errorRouteRejected'));
 }
