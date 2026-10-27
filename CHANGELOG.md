@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.2](https://github.com/cixiangtao/codex-project-chats/compare/v1.1.1...v1.1.2) (2026-10-27)
+
+### Bug Fixes
+
+* **conversations:** 🐛 use recency for timestamps and ordering ([ac63c57](https://github.com/cixiangtao/codex-project-chats/commit/ac63c57a73919c9fd9954e92141741568dc941ce))
+
 ## [1.1.1](https://github.com/cixiangtao/codex-project-chats/compare/v1.1.0...v1.1.1) (2026-10-27)
 
 ### Bug Fixes
