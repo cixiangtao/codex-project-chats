@@ -33,3 +33,10 @@ test('Windows paths normalize case and separators without changing POSIX path ca
   expect(uniquePaths(['/a/', '/a', '/b'])).toHaveLength(2);
   expect(pathKey('/')).toBe('/');
 });
+
+
+test('protocol parsing preserves the full title for hover details', () => {
+  const title = 'x'.repeat(220) + ' END';
+  const page = parsePage({ data: [{ id: 'thread-0001', cwd: '/fixture', name: title }] });
+  expect(page.chats[0]?.title).toBe(title);
+});

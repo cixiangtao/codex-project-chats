@@ -15,7 +15,7 @@ pnpm run package
 
 With nvm, run `nvm install` and `nvm use` to select the development runtime. Corepack users can run `corepack pnpm` in place of `pnpm`. If your global pnpm is older, `npx --yes pnpm@12.15.0 <command>` runs the pinned version without changing the global installation. Build-script permissions and dependency overrides are declared in `pnpm-workspace.yaml`.
 
-`pnpm run check` type-checks both the extension and tests. Vitest runs `.test.ts` files directly against the source, using a module mock for the VS Code API. Use `pnpm run test:watch` for watch mode. The extension output remains CommonJS for the VS Code extension host; changing the test runner does not change its runtime format.
+`pnpm run check` type-checks the extension, tests, and Webview JavaScript (JSDoc with `checkJs`). Vitest runs `.test.ts` files directly against the source, using a module mock for the VS Code API. Controller tests cover disposal and stale requests; jsdom tests exercise focus, tooltip content, IME search, collapse state, and visibility-aware time labels. DOM simulation does not verify browser layout or the real VS Code host. Use `pnpm run test:watch` for watch mode. The extension output remains CommonJS for the VS Code extension host; changing the test runner does not change its runtime format.
 
 Tests use generated local fixtures. They do not require a Codex login or read your real history. A POSIX executable fixture is skipped on Windows. CI builds and packages the extension but does not claim end-to-end compatibility with the official extension.
 

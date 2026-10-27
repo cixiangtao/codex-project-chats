@@ -5,7 +5,8 @@ import path from 'node:path';
 import { randomBytes } from 'node:crypto';
 import { CodexClient } from './client';
 import { openInCodex } from './routing';
-import { groupChats, isRecord, uniquePaths, type Chat, type Scope } from './model';
+import { groupChats, uniquePaths, type Chat, type Scope } from './model';
+import { parseWebviewMessage, type ViewState } from './protocol';
 
 const t = createLocalizer(vscode.env.language);
 const VIEW_ID = 'codexProjectChats.list';
@@ -82,7 +83,7 @@ class ProjectChatsView implements vscode.WebviewViewProvider, vscode.Disposable 
     const asset = (name: string) => view.webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'media', name)).toString();
     view.webview.html = template.replaceAll('{{CSP}}', view.webview.cspSource).replaceAll('{{NONCE}}', nonce)
       .replaceAll('{{LOCALIZATION}}', serializeLocalization(vscode.env.language))
-      .replaceAll('{{STYLE}}', asset('view.css')).replaceAll('{{SCRIPT}}', asset('view.js'));
+      .replaceAll('{{STYLE}}', asset('view.css')).replaceAll('{{SCRIPT}}', asset('main.js'));
   }
 
   /** A view owns its subscriptions, debounce work, and list-service connection. */
@@ -104,28 +105,27 @@ class ProjectChatsView implements vscode.WebviewViewProvider, vscode.Disposable 
     return generation === this.generation && !this.disposed && this.ready && this.view !== undefined;
   }
 
-  private async handle(message: unknown): Promise<void> {
-    if (this.disposed || !this.view || !isRecord(message)) return;
+  private async handle(value: unknown): Promise<void> {
+    const message = parseWebviewMessage(value);
+    if (this.disposed || !this.view || !message) return;
     if (message.type !== 'ready' && !this.ready) return;
     switch (message.type) {
       case 'ready': this.ready = true; await this.refresh(); break;
       case 'refresh': await this.refresh(); break;
       case 'more': if (!this.busy && this.cursor) await this.load(true); break;
       case 'scope':
-        if (message.value !== 'current' && message.value !== 'all') return;
         this.scope = message.value;
         await this.context.workspaceState.update('scope', this.scope);
         await this.refresh();
         break;
       case 'search':
-        if (typeof message.value !== 'string') return;
-        this.search = message.value.slice(0, 200);
+        this.search = message.value;
         clearTimeout(this.timer);
         // Invalidate in-flight requests immediately, before the debounce window ends.
         this.generation++;
         this.timer = setTimeout(() => { void this.refresh(); }, 220);
         break;
-      case 'open': if (typeof message.id === 'string') await this.open(message.id); break;
+      case 'open': await this.open(message.id); break;
     }
   }
 
@@ -177,9 +177,10 @@ class ProjectChatsView implements vscode.WebviewViewProvider, vscode.Disposable 
 
   private send(): void {
     if (!this.view || !this.ready || this.disposed) return;
-    void this.view.webview.postMessage({ type: 'state', scope: this.scope, search: this.search,
+    const state: ViewState = { type: 'state', scope: this.scope, search: this.search,
       groups: groupChats(this.chats, this.roots), busy: this.busy, opening: this.opening, error: this.error,
-      hasMore: Boolean(this.cursor), count: this.chats.length, hasWorkspace: this.roots.length > 0, lastRefresh: this.lastRefresh });
+      hasMore: Boolean(this.cursor), count: this.chats.length, hasWorkspace: this.roots.length > 0 };
+    void this.view.webview.postMessage(state);
   }
 
   /** Metadata-free diagnostics used by the isolated extension-host smoke test. */

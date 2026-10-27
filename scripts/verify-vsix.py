@@ -13,6 +13,8 @@ with ZipFile(archive) as package:
         assert packed[field] == manifest[field], f"Manifest mismatch: {field}"
     for name in ("extension/readme.md", "extension/changelog.md", "extension/LICENSE.txt",
                  "extension/README.zh-CN.md", "extension/SUPPORT.md", "extension/media/icon.png",
+                 "extension/media/view.html", "extension/media/view.css", "extension/media/main.js",
+                 "extension/media/view.js", "extension/media/time.js", "extension/media/tooltip.js",
                  "extension/package.nls.json", "extension/package.nls.zh.json", "extension/package.nls.zh-cn.json"):
         assert name in names, f"Missing public asset: {name}"
     allowed = ("extension/dist/", "extension/media/")

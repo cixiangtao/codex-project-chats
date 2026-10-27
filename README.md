@@ -25,7 +25,7 @@ Change the VS Code display language with **Configure Display Language**, then re
 | Action | How it works |
 | --- | --- |
 | Find a conversation | Select **Current project** for workspace roots, or **All projects** for other directories. Enter part of its title to search. |
-| Check recency | Each compact row shows its title and **last-update time**. Conversations in a project are sorted newest first. Labels such as `Yesterday` or `Oct 17` help narrow the list; they are not creation times. |
+| Check recency | Each compact row shows its title and **last-update time**. Conversations in a project are sorted newest first. Labels such as `Yesterday` or `Oct 17` help narrow the list; they are not creation times. Labels update while the view is visible. |
 | Read full details | Hover over a row to see its complete title, update time to the minute, and project path. The tooltip sits toward the right, leaving a clear mouse lane on the left for moving between rows. |
 | Use the keyboard | Press Tab to focus a conversation and reveal its details, Enter or Space to open it, and Esc to dismiss the tooltip. |
 | Refresh or load more | Use the refresh icon to fetch recent changes. Select **Load more conversations** for the next page; project counts describe loaded matches. |
@@ -86,7 +86,7 @@ pnpm test
 pnpm run package
 ```
 
-Vitest runs TypeScript tests directly against the source; `pnpm run check` checks both source and test types. Use `pnpm run test:watch` while developing. The extension still compiles to CommonJS for the VS Code extension host.
+Vitest runs TypeScript tests directly against the source; `pnpm run check` checks extension, test, and Webview types. Use `pnpm run test:watch` while developing. The extension still compiles to CommonJS for the VS Code extension host.
 
 The VSIX is generated in the repository root. There are no runtime dependencies; only compiled code, local media, and public documentation are packaged. This is a VS Code extension, not an npm library (`private: true` prevents accidental npm publication).
 
