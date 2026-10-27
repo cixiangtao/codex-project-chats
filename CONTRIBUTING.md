@@ -4,24 +4,30 @@ Thanks for helping improve Codex Project Chats. Keep changes focused on project 
 
 ## Setup and checks
 
-Use Node.js 22 and npm. From the repository root:
+Use Node.js 24.18.0 (`.nvmrc`) and pnpm 12.15.0 (`packageManager`). From the repository root:
 
 ```sh
-npm ci
-npm run check
-npm test
-npm run package
+pnpm install --frozen-lockfile
+pnpm run check
+pnpm test
+pnpm run package
 ```
 
+With nvm, run `nvm install` and `nvm use` to select the development runtime. Corepack users can run `corepack pnpm` in place of `pnpm`. If your global pnpm is older, `npx --yes pnpm@12.15.0 <command>` runs the pinned version without changing the global installation. Build-script permissions and dependency overrides are declared in `pnpm-workspace.yaml`.
+
+`pnpm run check` type-checks both the extension and tests. Vitest runs `.test.ts` files directly against the source, using a module mock for the VS Code API. Use `pnpm run test:watch` for watch mode. The extension output remains CommonJS for the VS Code extension host; changing the test runner does not change its runtime format.
+
 Tests use generated local fixtures. They do not require a Codex login or read your real history. A POSIX executable fixture is skipped on Windows. CI builds and packages the extension but does not claim end-to-end compatibility with the official extension.
+
+Generate a sample-data interface preview with `pnpm run preview /tmp/codex-project-chats-preview.html`. Append `en` for English; the default is Simplified Chinese.
 
 To try the extension in VS Code, install a locally built VSIX in a separate VS Code profile with the official Codex extension installed and signed in. Use sample conversations and a disposable workspace when checking UI behavior.
 
 ## Optional integration tests
 
-`test/live.cjs` reads real local metadata only when `CODEX_LIVE_BINARY` is explicitly set. It prints aggregate counts, not titles, paths, IDs, or transcripts. Run it only when you intend to grant access to that host's conversation history. It is not part of CI.
+`test/live.mjs` reads real local metadata only when `CODEX_LIVE_BINARY` is explicitly set. It prints aggregate counts, not titles, paths, IDs, or transcripts. Run it only when you intend to grant access to that host's conversation history. It is not part of CI.
 
-`test/host.cjs` is an opt-in VS Code extension-host harness. It expects a separately prepared user-data directory at `PROJECT_CHATS_TEST_WORK/vscode-user`, a configured metadata fixture returning three current-project conversations, and an output directory at `PROJECT_CHATS_TEST_WORK`. Invoke it through VS Code's `--extensionTestsPath` with both this extension and the official extension available. Set `PROJECT_CHATS_TEST_THREAD` only to intentionally test a real local conversation route. The harness checks official logs and asserts that no conversation editor tab is created. Never use your normal profile or publish its logs. This harness is not a self-contained CI launcher.
+`test/host.cjs` is an opt-in VS Code extension-host harness. It expects a separately prepared user-data directory at `PROJECT_CHATS_TEST_WORK/vscode-user`, a configured metadata fixture returning three current-project conversations, and an output directory at `PROJECT_CHATS_TEST_WORK`. Invoke it through VS Code's `--extensionTestsPath` with both this extension and the official extension available. Set `PROJECT_CHATS_TEST_THREAD` only to intentionally test a real local conversation route. The harness checks official logs and asserts that no conversation editor tab is created. Never use your normal profile or publish its logs. This harness is not a self-contained CI launcher. It retains `.cjs` because the VS Code test-host entry point loads its `run` export through CommonJS.
 
 ## Pull requests
 
@@ -29,13 +35,13 @@ To try the extension in VS Code, install a locally built VSIX in a separate VS C
 - Keep behavior, refactoring, and unrelated formatting in separate changes.
 - Preserve the existing official sidebar when opening conversations.
 - Never include real transcripts, conversation IDs, personal paths, credentials, or account details in fixtures or screenshots.
-- Update both README entry points when usage or compatibility changes. English is canonical; `README.zh-CN.md` is the maintained Chinese companion. The product interface is Chinese independently of documentation language.
+- Update both README entry points when usage or compatibility changes. English is canonical; `README.zh-CN.md` is the maintained Chinese companion. The product interface follows the VS Code display language, with Simplified Chinese and English translations.
 - Use Conventional Commit subjects, for example `fix(routing): 🐛 preserve the existing Codex view`.
 
 ## Release boundary
 
-`package.json` owns the extension version. Keep the lockfile's root version, the app-server client version in `src/client.ts`, and the changelog consistent when changing a version. Inspect the VSIX before distribution.
+`package.json` owns the extension version. release-it synchronizes it with the app-server client version in `src/client.ts` and generates `CHANGELOG.md` from Conventional Commits. pnpm's lockfile tracks dependencies, not the root extension version. `pnpm run release:check` validates the version files and release configuration.
 
-A [manual Marketplace release procedure](docs/releasing.md) is currently used: changes and synchronized version metadata pass required PR checks before the inspected VSIX is uploaded through the publisher dashboard. A version tag is recorded only after verifying the public Marketplace payload. No GitHub Release or npm package is created.
+Follow the [Marketplace release procedure](docs/releasing.md): run `pnpm run release:dry patch` to preview a release and `pnpm run release:prepare patch` on a clean branch to prepare it. Inspect the generated changelog, submit the changes through a PR, and upload the inspected VSIX manually after required CI passes. Record the version tag only after verifying the public Marketplace payload. release-it does not commit, tag, push, publish to npm, or create a GitHub Release.
 
-The prepared automated release-PR workflow remains disabled until Microsoft Entra publishing is configured. Do not combine manual uploads with an enabled publisher. Read the setup, activation, dry-run, and recovery procedure before switching. An uploaded package awaiting Marketplace validation is not a public release. Repository documentation changes can remain ahead of the last store package until a separately approved version update.
+An uploaded package awaiting Marketplace validation is not yet a public release. Repository documentation changes can remain ahead of the last store package until a separately approved version update.

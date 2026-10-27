@@ -1,6 +1,6 @@
 // Explicit opt-in: query metadata only, and never print titles, cwd values, IDs or transcripts.
-const assert = require('node:assert/strict');
-const { CodexClient } = require('../dist/client.js');
+import assert from 'node:assert/strict';
+import { CodexClient } from '../dist/client.js';
 async function main() {
   if (!process.env.CODEX_LIVE_BINARY) throw new Error('Set CODEX_LIVE_BINARY explicitly.');
   const client = new CodexClient(process.env.CODEX_LIVE_BINARY);

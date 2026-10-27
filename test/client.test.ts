@@ -1,13 +1,13 @@
-const { test } = require('node:test');
-const assert = require('node:assert/strict');
-const fs = require('node:fs/promises');
-const os = require('node:os');
-const path = require('node:path');
-const { CodexClient } = require('../dist/client.js');
+import { expect, test } from 'vitest';
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import { CodexClient } from '../src/client';
 
-test('stdio handshake and list requests keep project/search filters on every page', {
-  skip: process.platform === 'win32' ? 'Executable script fixture requires POSIX; this is not a Windows runtime test.' : false,
-}, async () => {
+interface WireCall { method: string; params: Record<string, unknown> }
+
+test.skipIf(process.platform === 'win32')('stdio handshake and list requests keep project/search filters on every page', async () => {
   const folder = await fs.mkdtemp(path.join(os.tmpdir(), 'project-chats-test-'));
   const binary = path.join(folder, 'codex-fixture');
   const trace = path.join(folder, 'trace.jsonl');
@@ -26,7 +26,7 @@ readline.createInterface({input:process.stdin}).on('line', line => {
     assert.equal(first.nextCursor, 'second');
     await client.list(['/repo/a', '/repo/b'], '登录', first.nextCursor);
     await client.list(undefined, '', null);
-    const calls = (await fs.readFile(trace, 'utf8')).trim().split('\n').map(JSON.parse);
+    const calls: WireCall[] = (await fs.readFile(trace, 'utf8')).trim().split('\n').map(line => JSON.parse(line));
     assert.deepEqual(calls.slice(0, 2).map(call => call.method), ['initialize', 'initialized']);
     const pages = calls.filter(call => call.method === 'thread/list');
     for (const call of pages.slice(0, 2)) {
@@ -38,17 +38,17 @@ readline.createInterface({input:process.stdin}).on('line', line => {
       assert.equal(call.params.limit, 50);
       assert.deepEqual(call.params.sourceKinds, ['vscode', 'cli', 'appServer']);
     }
-    assert.equal(pages[1].params.cursor, 'second');
-    assert.equal('cwd' in pages[2].params, false);
-    assert.equal('searchTerm' in pages[2].params, false);
+    assert.equal(pages[1]?.params.cursor, 'second');
+    expect(pages[2]?.params).not.toHaveProperty('cwd');
+    expect(pages[2]?.params).not.toHaveProperty('searchTerm');
     const before = pages.length;
     assert.deepEqual(await client.list([], '', null), { chats: [], nextCursor: null });
-    const after = (await fs.readFile(trace, 'utf8')).trim().split('\n').map(JSON.parse).filter(call => call.method === 'thread/list');
+    const after = (await fs.readFile(trace, 'utf8')).trim().split('\n').map(line => JSON.parse(line)).filter(call => call.method === 'thread/list');
     assert.equal(after.length, before);
   } finally { client.dispose(); await fs.rm(folder, { recursive: true, force: true }); }
 });
 
-for (const [language, message] of [['en', /Could not start Codex/], ['zh-CN', /无法启动/]]) {
+for (const [language, message] of [['en', /Could not start Codex/], ['zh-CN', /无法启动/]] as const) {
   test(`a missing executable produces a recoverable error in ${language}`, async () => {
     const client = new CodexClient('/missing/codex-executable-for-test', language);
     try { await assert.rejects(client.list(undefined, '', null), message); }

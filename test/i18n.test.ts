@@ -1,9 +1,9 @@
-const { test } = require('node:test');
-const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const path = require('node:path');
-const { localization, createLocalizer, serializeLocalization } = require('../dist/i18n.js');
-const { parsePage } = require('../dist/model.js');
+import { test } from 'vitest';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { localization, createLocalizer, serializeLocalization, type MessageKey } from '../src/i18n';
+import { parsePage } from '../src/model';
 
 test('Chinese display languages select Chinese, with English as the default fallback', () => {
   for (const language of ['zh', 'zh-cn', 'ZH-CN', 'zh-TW', 'zh-Hant']) {
@@ -20,8 +20,8 @@ test('both languages provide complete messages with matching interpolation param
   const en = localization('en').messages;
   const zh = localization('zh-CN').messages;
   assert.deepEqual(Object.keys(en).sort(), Object.keys(zh).sort());
-  const parameters = text => [...text.matchAll(/\{(\w+)\}/g)].map(match => match[1]).sort();
-  for (const key of Object.keys(en)) {
+  const parameters = (text: string) => [...text.matchAll(/\{(\w+)\}/g)].map(match => match[1]).sort();
+  for (const key of Object.keys(en) as MessageKey[]) {
     assert(en[key].trim() && zh[key].trim(), key);
     assert.deepEqual(parameters(en[key]), parameters(zh[key]), key);
   }
@@ -43,26 +43,26 @@ test('unnamed conversations and protocol errors are localized without translatin
   for (const [language, untitled, error] of [
     ['en', 'Untitled conversation', /unrecognized conversation list/],
     ['zh-CN', '未命名对话', /无法识别的列表格式/],
-  ]) {
+  ] as const) {
     const t = createLocalizer(language);
     const page = parsePage({ data: [
       { id: 'thread-0001', cwd: '/sample', name: '' },
       { id: 'thread-0002', cwd: '/sample', name: '原始标题 Original title' },
     ] }, t);
-    assert.equal(page.chats[0].title, untitled);
-    assert.equal(page.chats[1].title, '原始标题 Original title');
+    assert.equal(page.chats[0]?.title, untitled);
+    assert.equal(page.chats[1]?.title, '原始标题 Original title');
     assert.throws(() => parsePage({ data: null }, t), error);
   }
 });
 
 test('all manifest localization references resolve in English and Chinese', () => {
-  const root = path.join(__dirname, '..');
+  const root = path.join(import.meta.dirname, '..');
   const manifest = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
-  const keys = [...manifest.matchAll(/%([^%]+)%/g)].map(match => match[1]);
+  const keys = [...manifest.matchAll(/%([^%]+)%/g)].flatMap(match => match[1] ? [match[1]] : []);
   assert(keys.length > 0);
   for (const file of ['package.nls.json', 'package.nls.zh.json', 'package.nls.zh-cn.json']) {
-    const messages = JSON.parse(fs.readFileSync(path.join(root, file), 'utf8'));
+    const messages: Record<string, string> = JSON.parse(fs.readFileSync(path.join(root, file), 'utf8'));
     assert.deepEqual(Object.keys(messages).sort(), [...keys].sort());
-    for (const key of keys) assert(messages[key].trim(), `${file}: ${key}`);
+    for (const key of keys) assert(messages[key]?.trim(), `${file}: ${key}`);
   }
 });

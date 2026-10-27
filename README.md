@@ -77,19 +77,22 @@ If you installed the prototype as `ikun-local.codex-project-chats`, uninstall it
 
 ## Development
 
-Use Node.js 22 (see `.nvmrc`) and npm:
+Use Node.js 24.18.0 (see `.nvmrc`) and pnpm 12.15.0 (pinned in `packageManager`):
 
 ```sh
-npm ci
-npm test
-npm run package
+pnpm install --frozen-lockfile
+pnpm run check
+pnpm test
+pnpm run package
 ```
 
-The VSIX is generated in the repository root. There are no runtime npm dependencies; only compiled code, local media, and public documentation are packaged. This is a VS Code extension, not an npm library (`private: true` prevents accidental npm publication).
+Vitest runs TypeScript tests directly against the source; `pnpm run check` checks both source and test types. Use `pnpm run test:watch` while developing. The extension still compiles to CommonJS for the VS Code extension host.
+
+The VSIX is generated in the repository root. There are no runtime dependencies; only compiled code, local media, and public documentation are packaged. This is a VS Code extension, not an npm library (`private: true` prevents accidental npm publication).
 
 CI runs the tests on Linux, macOS, and Windows and inspects a VSIX on Linux. One POSIX executable fixture is explicitly skipped on Windows. These checks do not replace a real VS Code/official Codex integration test. Live-history and extension-host tests are opt-in; see [CONTRIBUTING.md](https://github.com/cixiangtao/codex-project-chats/blob/main/CONTRIBUTING.md).
 
-Repository documentation and metadata may be ahead of the last Marketplace package; editing this repository does not update an already uploaded VSIX. Marketplace releases are currently packaged and uploaded manually after CI passes. The prepared automated workflow stays disabled until its Microsoft Entra publishing identity is configured. See the [release procedure](https://github.com/cixiangtao/codex-project-chats/blob/main/docs/releasing.md). No GitHub Release or npm package is created.
+Repository documentation and metadata may be ahead of the last Marketplace package; editing this repository does not update an already uploaded VSIX. release-it prepares the version and changelog locally; Marketplace packages are uploaded manually after CI passes, then verified before tagging. See the [release procedure](https://github.com/cixiangtao/codex-project-chats/blob/main/docs/releasing.md). No GitHub Release or npm package is created.
 
 ## Support and license
 

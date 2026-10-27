@@ -70,19 +70,22 @@
 
 ## 发布方式
 
-当前通过 CI 后打包 VSIX，并在 Marketplace 发布者后台手动上传。[发布说明](https://github.com/cixiangtao/codex-project-chats/blob/main/docs/releasing.md)包含手动发布步骤及后续自动化启用流程。自动发布因微软 Entra 发布身份尚未配置而保持停用。不会创建 GitHub Release，也不会发布 npm 包。
+使用 release-it 在本地同步版本号和生成更新日志，通过 CI 后打包 VSIX，在 Marketplace 发布者后台手动上传。公开包校验通过后再记录版本标签。具体命令参阅[发布说明](https://github.com/cixiangtao/codex-project-chats/blob/main/docs/releasing.md)。不会创建 GitHub Release，也不会发布 npm 包。
 
 ## 开发
 
-需要 Node.js 22+。
+开发使用 Node.js 24.18.0（见 `.nvmrc`）和 pnpm 12.15.0（由 `packageManager` 固定版本）。
 
 ```sh
-npm ci
-npm test
-npm run package
+pnpm install --frozen-lockfile
+pnpm run check
+pnpm test
+pnpm run package
 ```
 
-源码不包含运行时 npm 依赖。TypeScript 编译到 `dist/`，VSIX 仅包含运行所需文件。
+Vitest 直接运行 TypeScript 源码测试，`pnpm run check` 同时检查源码和测试的类型。开发时可使用 `pnpm run test:watch`。扩展仍编译为适用于 VS Code 扩展宿主的 CommonJS，输出到 `dist/`，无运行时依赖。VSIX 仅包含运行代码、媒体资源和公开文档。
+
+环境准备、示例界面预览和可选集成测试参阅 [CONTRIBUTING.md](https://github.com/cixiangtao/codex-project-chats/blob/main/CONTRIBUTING.md)。
 
 ## 接口参考
 
