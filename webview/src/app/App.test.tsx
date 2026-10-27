@@ -38,7 +38,7 @@ function state(overrides: Partial<ViewState> = {}): ViewState {
             id: 'thread-0001',
             title: 'Sample conversation',
             cwd: '/fixture',
-            updatedAt: clock / 1000 - 40,
+            recencyAt: clock / 1000 - 40,
           },
         ],
       },
@@ -249,7 +249,7 @@ test('stable conversation keys preserve the focused node when titles and orderin
     id: 'thread-0002',
     title: 'Another conversation',
     cwd: '/fixture',
-    updatedAt: clock / 1000,
+    recencyAt: clock / 1000,
   });
   await receive(value);
   const original = row();
@@ -296,5 +296,5 @@ test('React controls and hover details use the injected Chinese catalog', async 
   await advance(0);
   await interact(() => row().dispatchEvent(new Event('pointerover', { bubbles: true })));
   await advance(350);
-  expect(document.querySelector('#chat-tooltip dt')?.textContent).toBe('更新于');
+  expect(document.querySelector('#chat-tooltip dt')?.textContent).toBe('最近对话');
 });

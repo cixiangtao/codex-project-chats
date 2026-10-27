@@ -4,9 +4,9 @@ import type { Tooltip } from './useTooltip';
 export function ConversationTooltip({ tooltip }: { tooltip: Tooltip }) {
   const { locale, t } = useStrings();
   const { target, element } = tooltip;
-  const date = new Date((target?.chat.updatedAt ?? 0) * 1000);
+  const date = new Date((target?.chat.recencyAt ?? 0) * 1000);
   const timestamp =
-    target && target.chat.updatedAt > 0 && Number.isFinite(date.getTime())
+    target && target.chat.recencyAt > 0 && Number.isFinite(date.getTime())
       ? date.toLocaleString(locale, {
           year: 'numeric',
           month: '2-digit',
@@ -33,7 +33,7 @@ export function ConversationTooltip({ tooltip }: { tooltip: Tooltip }) {
           <p className="chat-tooltip-title">{target.chat.title}</p>
           <dl className="chat-tooltip-fields">
             <div>
-              <dt>{t('updated')}</dt>
+              <dt>{t('recentConversation')}</dt>
               <dd className="chat-tooltip-date">{timestamp}</dd>
             </div>
             <div>

@@ -16,7 +16,7 @@ const readline = require('node:readline'); const fs = require('node:fs');
 readline.createInterface({input:process.stdin}).on('line', line => {
   const msg=JSON.parse(line); fs.appendFileSync(${JSON.stringify(trace)}, line+'\\n');
   if (msg.id === undefined) return;
-  const result=msg.method==='initialize' ? {} : {data:[{id:'thread-0001',cwd:'/repo/a',name:'样例',updatedAt:10}],nextCursor:msg.params.cursor?null:'second'};
+  const result=msg.method==='initialize' ? {} : {data:[{id:'thread-0001',cwd:'/repo/a',name:'样例',recencyAt:10,updatedAt:900}],nextCursor:msg.params.cursor?null:'second'};
   process.stdout.write(JSON.stringify({id:msg.id,result})+'\\n');
 });
 `, { mode: 0o700 });
@@ -24,6 +24,7 @@ readline.createInterface({input:process.stdin}).on('line', line => {
   try {
     const first = await client.list(['/repo/a', '/repo/b'], '登录', null);
     assert.equal(first.nextCursor, 'second');
+    assert.equal(first.chats[0]?.recencyAt, 10);
     await client.list(['/repo/a', '/repo/b'], '登录', first.nextCursor);
     await client.list(undefined, '', null);
     const calls: WireCall[] = (await fs.readFile(trace, 'utf8')).trim().split('\n').map(line => JSON.parse(line));
@@ -34,7 +35,7 @@ readline.createInterface({input:process.stdin}).on('line', line => {
       assert.deepEqual(call.params.cwd, ['/repo/a', '/repo/b']);
       assert.equal(call.params.searchTerm, '登录');
       assert.equal(call.params.useStateDbOnly, true);
-      assert.equal(call.params.sortKey, 'updated_at');
+      assert.equal(call.params.sortKey, 'recency_at');
       assert.equal(call.params.archived, false);
       assert.equal(call.params.limit, 50);
       assert.deepEqual(call.params.sourceKinds, ['vscode', 'cli', 'appServer']);

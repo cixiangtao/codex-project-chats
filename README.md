@@ -25,12 +25,12 @@ Change the VS Code display language with **Configure Display Language**, then re
 | Action | How it works |
 | --- | --- |
 | Find a conversation | Select **Current project** for workspace roots, or **All projects** for other directories. Enter part of its title to search. |
-| Check recency | Each compact row shows its title and **last-update time**. Conversations in a project are sorted newest first. Labels such as `Yesterday` or `Oct 17` help narrow the list; they are not creation times. Labels update while the view is visible. |
-| Read full details | Hover over a row to see its complete title, update time to the minute, and project path. The tooltip sits toward the right, leaving a clear mouse lane on the left for moving between rows. |
+| Check recency | Each compact row shows its title and **conversation recency**. Display and sorting both use Codex’s `recencyAt` field, rather than the record update time or the last reply time. Conversations in a project are sorted newest first. Labels such as `Yesterday` or `Oct 17` help narrow the list; they are not creation times. Labels update while the view is visible. |
+| Read full details | Hover over a row to see its complete title, conversation recency to the minute, and project path. The tooltip sits toward the right, leaving a clear mouse lane on the left for moving between rows. |
 | Use the keyboard | Press Tab to focus a conversation and reveal its details, Enter or Space to open it, and Esc to dismiss the tooltip. |
 | Refresh or load more | Use the refresh icon to fetch recent changes. Select **Load more conversations** for the next page; project counts describe loaded matches. |
 
-Long titles are shortened in the list. Full details wrap in the tooltip, with scrolling for unusually long content. Missing update metadata is labeled **Unknown**.
+Long titles are shortened in the list. Full details wrap in the tooltip, with scrolling for unusually long content. Missing recency metadata is labeled **Unknown**.
 
 ## Preview
 
@@ -38,9 +38,9 @@ The images show the English interface with sample data, not real conversation hi
 
 | Current project | All projects |
 | --- | --- |
-| ![Compact current-project conversation list with update times](https://raw.githubusercontent.com/cixiangtao/codex-project-chats/main/docs/images/current-project-en.png) | ![Projects grouped by cwd, including identical folder names](https://raw.githubusercontent.com/cixiangtao/codex-project-chats/main/docs/images/all-projects-en.png) |
+| ![Compact current-project conversation list with conversation recency](https://raw.githubusercontent.com/cixiangtao/codex-project-chats/main/docs/images/current-project-en.png) | ![Projects grouped by cwd, including identical folder names](https://raw.githubusercontent.com/cixiangtao/codex-project-chats/main/docs/images/all-projects-en.png) |
 
-Hover details show the full title, last-update time, and path while leaving the left side available for switching rows:
+Hover details show the full title, conversation recency, and path while leaving the left side available for switching rows:
 
 ![Compact right-aligned hover details with a clear pointer lane on the left](https://raw.githubusercontent.com/cixiangtao/codex-project-chats/main/docs/images/hover-details-en.png)
 
@@ -69,7 +69,7 @@ The manifest requires VS Code 1.100 or newer. The tested baseline was VS Code 1.
 
 ## Privacy and integration boundary
 
-The extension starts the official bundled `codex app-server` over local stdio and requests `thread/list` with `useStateDbOnly`. It passes only IDs, titles (or a first-message preview when no title exists), working directories, and update times to its local webview. It does not read full transcripts or account credentials, send prompts, or directly write the Codex database. The app-server may maintain its own internal state and logs. This extension adds no telemetry or external webview resources; the official executable remains subject to its own behavior and configuration.
+The extension starts the official bundled `codex app-server` over local stdio and requests `thread/list` with `useStateDbOnly`. It passes only IDs, titles (or a first-message preview when no title exists), working directories, and conversation recency timestamps to its local webview. It does not read full transcripts or account credentials, send prompts, or directly write the Codex database. The app-server may maintain its own internal state and logs. This extension adds no telemetry or external webview resources; the official executable remains subject to its own behavior and configuration.
 
 Navigation uses `vscode.env.asExternalUri` and the official extension's `/local/<id>` URI handler to target the current window and reveal the existing sidebar. That upstream URI route is not a stable public API. Project grouping is a navigation feature, not an access-control boundary.
 

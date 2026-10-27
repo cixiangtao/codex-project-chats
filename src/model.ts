@@ -6,7 +6,8 @@ export interface Chat {
   id: string;
   title: string;
   cwd: string;
-  updatedAt: number;
+  /** Codex recency timestamp in Unix seconds; 0 means unavailable. */
+  recencyAt: number;
 }
 
 export interface ChatPage { chats: Chat[]; nextCursor: string | null }
@@ -22,7 +23,7 @@ export function parsePage(value: unknown, t: Localize = createLocalizer()): Chat
       || typeof row.cwd !== 'string' || !row.cwd) continue;
     const title = typeof row.name === 'string' && row.name.trim() ? row.name : typeof row.preview === 'string' ? row.preview : '';
     chats.push({ id: row.id, title: title.replace(/\s+/g, ' ').trim() || t('untitled'), cwd: row.cwd,
-      updatedAt: typeof row.updatedAt === 'number' && Number.isFinite(row.updatedAt) ? row.updatedAt : 0 });
+      recencyAt: typeof row.recencyAt === 'number' && Number.isFinite(row.recencyAt) && row.recencyAt > 0 ? row.recencyAt : 0 });
   }
   return { chats, nextCursor: typeof value.nextCursor === 'string' && value.nextCursor ? value.nextCursor : null };
 }
@@ -58,7 +59,7 @@ export function groupChats(chats: Chat[], roots: string[]): ProjectGroup[] {
     group.chats.push(chat);
   }
   const result = [...groups.values()];
-  for (const group of result) group.chats.sort((a, b) => b.updatedAt - a.updatedAt || a.id.localeCompare(b.id));
+  for (const group of result) group.chats.sort((a, b) => b.recencyAt - a.recencyAt || a.id.localeCompare(b.id));
   return result.sort((a, b) => Number(b.current) - Number(a.current)
-    || (b.chats[0]?.updatedAt ?? 0) - (a.chats[0]?.updatedAt ?? 0) || a.cwd.localeCompare(b.cwd));
+    || (b.chats[0]?.recencyAt ?? 0) - (a.chats[0]?.recencyAt ?? 0) || a.cwd.localeCompare(b.cwd));
 }

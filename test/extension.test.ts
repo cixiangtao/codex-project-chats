@@ -39,7 +39,7 @@ class Signal<T> {
   fire(value: T) { for (const listener of this.listeners) listener(value); }
 }
 const disposables: vscode.Disposable[] = [];
-const page = (id: string): ChatPage => ({ chats: [{ id, cwd: '/fixture', title: id, updatedAt: 1 }], nextCursor: null });
+const page = (id: string): ChatPage => ({ chats: [{ id, cwd: '/fixture', title: id, recencyAt: 1 }], nextCursor: null });
 
 async function setup() {
   const context = {
