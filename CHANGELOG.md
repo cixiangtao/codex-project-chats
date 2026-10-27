@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.0
+
+- Follow the VS Code display language with Simplified Chinese for Chinese locales and English as the fallback.
+- Localize conversation lists, hover details, relative times, loading and empty states, accessibility labels, and extension-owned error messages.
+- Localize Activity Bar labels, commands, and executable-path settings through native VS Code language resources.
+- Preserve original conversation titles, project paths, and upstream diagnostics without translation.
+- Add English sample screenshots and synchronize bilingual usage and language-switching instructions.
+
 ## 1.0.0
 
 - Publish the first stable release and remove the Marketplace preview designation.

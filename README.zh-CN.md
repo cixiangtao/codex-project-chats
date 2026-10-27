@@ -4,7 +4,7 @@
 
 一个只做项目分类和跳转的 VS Code 扩展。打开项目，看到相关 Codex 对话，点一下回到官方 Codex。
 
-> 正式版本；目前仅对 macOS Apple Silicon 完成端到端验证。界面为中文。
+> 正式版本；目前仅对 macOS Apple Silicon 完成端到端验证。界面跟随 VS Code 显示语言：中文环境使用简体中文，其他语言环境使用英文。
 
 ## 使用
 
@@ -13,6 +13,8 @@
 3. 打开项目文件夹，点击活动栏的 **Codex 项目对话** 图标。
 4. 顶部直接选择 **当前项目 / 全部项目**，在搜索框输入标题关键词。
 5. 展开项目，点击对话，在已有的官方 Codex 对话区中继续。如果你把 Codex 放在右侧，就在右侧切换，不新建中间编辑器标签页。
+
+可通过 VS Code 的 **Configure Display Language（配置显示语言）** 切换语言，并重启 VS Code。对话标题和项目路径保留原文，不自动翻译。
 
 命令面板也可执行 **Codex Project Chats: 打开项目对话**。
 
@@ -34,7 +36,7 @@
 
 ## 界面预览
 
-以下均为示例数据，不含真实会话。
+以下展示简体中文界面，均为示例数据，不含真实会话。[英文说明](README.md#preview)提供对应的英文界面示例。
 
 ![当前项目](https://raw.githubusercontent.com/cixiangtao/codex-project-chats/main/docs/images/current-project.png)
 

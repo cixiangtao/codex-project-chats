@@ -1,0 +1,7 @@
+{
+  "viewContainer.title": "Codex Project Chats",
+  "view.title": "Project Chats",
+  "command.open": "Open Project Chats",
+  "command.refresh": "Refresh Conversations",
+  "configuration.cliPath": "Optional absolute path to the Codex executable on the current host. Leave empty to use the official extension's bundled version."
+}

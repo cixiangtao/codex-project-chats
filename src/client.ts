@@ -1,3 +1,4 @@
+import { createLocalizer, type Localize } from './i18n';
 import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
 import { createInterface } from 'node:readline';
 import { isRecord, parsePage, type ChatPage } from './model';
@@ -14,7 +15,8 @@ export class CodexClient {
   private nextId = 0;
   private pending = new Map<number, Pending>();
   private starting?: Promise<void>;
-  constructor(private readonly binary: string) {}
+  private readonly t: Localize;
+  constructor(private readonly binary: string, language = 'en') { this.t = createLocalizer(language); }
 
   private async start(): Promise<void> {
     if (this.starting) return this.starting;
@@ -23,7 +25,7 @@ export class CodexClient {
         stdio: 'pipe', windowsHide: true, env: { ...process.env, RUST_LOG: 'error' },
       });
       this.process = child;
-      child.stdin.on('error', () => { if (this.process === child) this.fail(new Error('Codex 连接已断开，请刷新重试。')); });
+      child.stdin.on('error', () => { if (this.process === child) this.fail(new Error(this.t('errorDisconnected'))); });
       child.stderr.resume(); // Never print protocol diagnostics that may contain local paths or metadata.
       const lines = createInterface({ input: child.stdout });
       lines.on('line', line => {
@@ -35,19 +37,19 @@ export class CodexClient {
           this.pending.delete(message.id);
           clearTimeout(pending.timer);
           if (isRecord(message.error)) {
-            pending.reject(new Error(typeof message.error.message === 'string' ? message.error.message : 'Codex 接口请求失败。'));
+            pending.reject(new Error(typeof message.error.message === 'string' ? message.error.message : this.t('errorRequestFailed')));
           } else pending.resolve(message.result);
         } catch { /* Ignore non-JSON diagnostics; the request timeout remains authoritative. */ }
       });
-      child.once('error', () => { if (this.process === child) this.fail(new Error('无法启动 Codex。请检查官方扩展或 Codex 可执行文件路径。')); });
+      child.once('error', () => { if (this.process === child) this.fail(new Error(this.t('errorStartFailed'))); });
       child.once('exit', () => {
         lines.close();
         if (this.process === child) {
           this.process = undefined; this.starting = undefined;
-          this.fail(new Error('Codex 列表服务已退出，请刷新重试。'));
+          this.fail(new Error(this.t('errorExited')));
         }
       });
-      await this.request('initialize', { clientInfo: { name: 'codex_project_chats', title: 'Codex Project Chats', version: '1.0.0' } }); // x-release-please-version
+      await this.request('initialize', { clientInfo: { name: 'codex_project_chats', title: 'Codex Project Chats', version: '1.1.0' } }); // x-release-please-version
       child.stdin.write(JSON.stringify({ method: 'initialized', params: {} }) + '\n');
     })();
     try { await this.starting; } catch (error) { this.dispose(); throw error; }
@@ -55,18 +57,18 @@ export class CodexClient {
 
   private request(method: string, params: Record<string, unknown>): Promise<unknown> {
     const child = this.process;
-    if (!child || child.killed || !child.stdin.writable) return Promise.reject(new Error('Codex 列表服务不可用，请刷新重试。'));
+    if (!child || child.killed || !child.stdin.writable) return Promise.reject(new Error(this.t('errorUnavailable')));
     const id = ++this.nextId;
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
         this.pending.delete(id);
-        reject(new Error('读取对话超时，请刷新重试。'));
+        reject(new Error(this.t('errorTimeout')));
       }, 20_000);
       this.pending.set(id, { resolve, reject, timer });
       child.stdin.write(JSON.stringify({ method, id, params }) + '\n', error => {
         if (!error) return;
         const pending = this.pending.get(id);
-        if (pending) { clearTimeout(pending.timer); this.pending.delete(id); pending.reject(new Error('无法连接 Codex 列表服务。')); }
+        if (pending) { clearTimeout(pending.timer); this.pending.delete(id); pending.reject(new Error(this.t('errorConnectFailed'))); }
       });
     });
   }
@@ -84,7 +86,7 @@ export class CodexClient {
     }
     if (search.trim()) params.searchTerm = search.trim();
     if (cursor) params.cursor = cursor;
-    return parsePage(await this.request('thread/list', params));
+    return parsePage(await this.request('thread/list', params), this.t);
   }
 
   private fail(error: Error): void {
@@ -97,7 +99,7 @@ export class CodexClient {
     const child = this.process;
     this.process = undefined;
     this.starting = undefined;
-    this.fail(new Error('对话列表连接已关闭。'));
+    this.fail(new Error(this.t('errorClosed')));
     if (child && child.exitCode === null) {
       child.stdin.end();
       child.kill();

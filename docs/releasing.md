@@ -22,6 +22,7 @@ Only Marketplace receives extension releases. No GitHub Release or npm package i
    ```
 
 3. Use the inspected VSIX from the merged commit's CI artifact, or rebuild from that exact commit and inspect it again. Open the [publisher management page](https://marketplace.visualstudio.com/manage/publishers/cixiangtao), select the existing **Codex Project Chats** extension, and upload the VSIX as an update. Keep publisher `cixiangtao` and extension ID `codex-project-chats` unchanged.
+   For agent-assisted releases, the agent prepares and verifies the package, the maintainer performs the final browser upload, and the agent verifies the public payload and records the version tag afterward.
 4. Wait for Marketplace validation. An accepted upload is **submitted**, not yet a public release. After it is public, verify the complete extension payload against the inspected package:
 
    ```sh
@@ -30,7 +31,7 @@ Only Marketplace receives extension releases. No GitHub Release or npm package i
 
 5. Only after that verification succeeds, create and push a lightweight `v<version>` Git tag at the exact merged commit. Leave automated publishing disabled. The synchronized manifest and tag provide a baseline if Release Please is enabled later.
 
-Use `node test/preview.cjs /tmp/codex-project-chats-preview.html` after building to generate the production interface with synthetic data for screenshots. Never capture real history or personal project paths for public documentation.
+Use `node test/preview.cjs /tmp/codex-project-chats-preview.html` after building to generate the production interface with synthetic data for screenshots. Add `en` as the third argument for the English interface; the preview defaults to Simplified Chinese. Never capture real history or personal project paths for public documentation.
 
 ## Future automated operation
 

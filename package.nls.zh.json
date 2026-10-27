@@ -1,0 +1,7 @@
+{
+  "viewContainer.title": "Codex 项目对话",
+  "view.title": "项目对话",
+  "command.open": "打开项目对话",
+  "command.refresh": "刷新对话",
+  "configuration.cliPath": "可选：当前主机的 Codex 可执行文件绝对路径。留空使用官方扩展内置版本。"
+}

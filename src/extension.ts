@@ -1,3 +1,4 @@
+import { createLocalizer, serializeLocalization } from './i18n';
 import * as vscode from 'vscode';
 import { access, realpath, readFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -6,26 +7,27 @@ import { CodexClient } from './client';
 import { openInCodex } from './routing';
 import { groupChats, isRecord, uniquePaths, type Chat, type Scope } from './model';
 
+const t = createLocalizer(vscode.env.language);
 const VIEW_ID = 'codexProjectChats.list';
 const OFFICIAL_ID = 'openai.chatgpt';
 
 async function getBinary(): Promise<string> {
   const configured = vscode.workspace.getConfiguration('codexProjectChats').get<string>('cliPath', '').trim();
   if (configured) {
-    if (!path.isAbsolute(configured)) throw new Error('Codex 路径必须是当前主机的绝对路径。');
+    if (!path.isAbsolute(configured)) throw new Error(t('errorAbsolutePath'));
     await access(configured);
     return configured;
   }
   const official = vscode.extensions.getExtension(OFFICIAL_ID);
-  if (!official) throw new Error('请先安装并启用官方 Codex 扩展。');
+  if (!official) throw new Error(t('errorInstallOfficial'));
   if (process.platform === 'win32' && vscode.workspace.getConfiguration('chatgpt').get('runCodexInWindowsSubsystemForLinux')) {
-    throw new Error('请在 VS Code 的 WSL 窗口中打开项目，再使用项目对话。');
+    throw new Error(t('errorWsl'));
   }
   const os = { darwin: 'macos', win32: 'windows', linux: 'linux' }[process.platform as 'darwin' | 'win32' | 'linux'];
   const arch = { arm64: 'aarch64', x64: 'x86_64' }[process.arch as 'arm64' | 'x64'];
-  if (!os || !arch) throw new Error('此主机架构需要手动设置 Codex 可执行文件路径。');
+  if (!os || !arch) throw new Error(t('errorArchitecture'));
   const binary = path.join(official.extensionPath, 'bin', `${os}-${arch}`, process.platform === 'win32' ? 'codex.exe' : 'codex');
-  try { await access(binary); } catch { throw new Error('未找到官方内置 Codex。请在扩展设置中指定 Codex 可执行文件路径。'); }
+  try { await access(binary); } catch { throw new Error(t('errorBinaryMissing')); }
   return binary;
 }
 
@@ -66,6 +68,7 @@ class ProjectChatsView implements vscode.WebviewViewProvider, vscode.Disposable 
     const nonce = randomBytes(18).toString('base64url');
     const asset = (name: string) => view.webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'media', name)).toString();
     view.webview.html = template.replaceAll('{{CSP}}', view.webview.cspSource).replaceAll('{{NONCE}}', nonce)
+      .replaceAll('{{LOCALIZATION}}', serializeLocalization(vscode.env.language))
       .replaceAll('{{STYLE}}', asset('view.css')).replaceAll('{{SCRIPT}}', asset('view.js'));
     const subscriptions = [view.webview.onDidReceiveMessage((message: unknown) => { void this.handle(message); }),
       view.onDidChangeVisibility(() => {
@@ -121,7 +124,7 @@ class ProjectChatsView implements vscode.WebviewViewProvider, vscode.Disposable 
       if (this.scope === 'current' && !roots.length) { this.lastRefresh = Date.now(); return; }
       const binary = await getBinary();
       if (generation !== this.generation || this.disposed) return;
-      if (!this.client || binary !== this.binary) { this.client?.dispose(); this.client = new CodexClient(binary); this.binary = binary; }
+      if (!this.client || binary !== this.binary) { this.client?.dispose(); this.client = new CodexClient(binary, vscode.env.language); this.binary = binary; }
       const page = await this.client.list(this.scope === 'current' ? roots : undefined, this.search, append ? this.cursor : null);
       if (generation !== this.generation || this.disposed) return;
       this.chats = [...new Map([...this.chats, ...page.chats].map(chat => [chat.id, chat])).values()];
@@ -129,7 +132,7 @@ class ProjectChatsView implements vscode.WebviewViewProvider, vscode.Disposable 
       this.lastRefresh = Date.now();
     } catch (error) {
       if (generation === this.generation && !this.disposed) {
-        this.error = error instanceof Error ? error.message : '读取对话失败，请刷新重试。';
+        this.error = error instanceof Error ? error.message : t('errorReadFailed');
         this.client?.dispose(); this.client = undefined;
       }
     } finally {
@@ -143,7 +146,7 @@ class ProjectChatsView implements vscode.WebviewViewProvider, vscode.Disposable 
     try {
       await openInCodex(id);
     } catch {
-      void vscode.window.showErrorMessage('未能打开官方 Codex 对话。可先打开 Codex 后重试；官方更新也可能影响跳转入口。', '复制会话 ID').then(action => {
+      void vscode.window.showErrorMessage(t('errorOpenFailed'), t('copyId')).then(action => {
         if (action) void vscode.env.clipboard.writeText(id);
       });
     } finally { this.opening = null; this.send(); }
