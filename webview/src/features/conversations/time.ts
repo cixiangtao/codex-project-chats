@@ -1,6 +1,6 @@
 import type { Localize } from '../../../../src/i18n';
 
-/** Format update times against one clock value, using calendar dates across DST changes. */
+/** Format conversation recency against one clock value, using calendar dates across DST changes. */
 export function createTimeFormatter(locale: string, t: Localize) {
   const shortDate = new Intl.DateTimeFormat(locale, { month: 'short', day: 'numeric' });
   const fullDate = new Intl.DateTimeFormat(locale, {

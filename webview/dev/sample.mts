@@ -39,7 +39,7 @@ export function sampleGroups(locale: string): ProjectGroup[] {
     ['thread-0008', '/projects/personal/app', '整理个人项目配置', now - 60000],
   ] satisfies [string, string, string, number][];
   const groups = new Map<string, ProjectGroup>();
-  for (const [id, cwd, title, updatedAt] of chats) {
+  for (const [id, cwd, title, recencyAt] of chats) {
     let group = groups.get(cwd);
     if (!group) {
       group = {
@@ -55,7 +55,7 @@ export function sampleGroups(locale: string): ProjectGroup[] {
       id,
       cwd,
       title: locale === 'en' ? englishTitles[id] || title : title,
-      updatedAt,
+      recencyAt,
     });
   }
   return [...groups.values()];

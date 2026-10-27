@@ -34,9 +34,9 @@ test('both languages provide complete messages with matching interpolation param
 test('formatting preserves user content without treating it as another template', () => {
   const title = '$& {time} </script> 原标题';
   assert.equal(createLocalizer('en')('openLabel', { title, time: 'Yesterday' }),
-    `${title}, last updated: Yesterday, open in Codex`);
+    `${title}, recent conversation: Yesterday, open in Codex`);
   assert.equal(createLocalizer('zh-CN')('openLabel', { title, time: '昨天' }),
-    `${title}，最后更新：昨天，在 Codex 中打开`);
+    `${title}，最近对话：昨天，在 Codex 中打开`);
 });
 
 test('unnamed conversations and protocol errors are localized without translating real titles', () => {

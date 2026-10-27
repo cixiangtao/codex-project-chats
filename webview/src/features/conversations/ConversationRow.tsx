@@ -29,7 +29,7 @@ export function ConversationRow({
     [chat.id, register],
   );
   const active = opening === chat.id;
-  const updated = formatTime(chat.updatedAt, clock);
+  const recency = formatTime(chat.recencyAt, clock);
   return (
     <button
       ref={bind}
@@ -37,7 +37,7 @@ export function ConversationRow({
       className={`chat${active ? ' opening' : ''}`}
       data-id={chat.id}
       disabled={Boolean(opening)}
-      aria-label={t(active ? 'openingLabel' : 'openLabel', { title: chat.title, time: updated })}
+      aria-label={t(active ? 'openingLabel' : 'openLabel', { title: chat.title, time: recency })}
       aria-busy={active}
       aria-describedby={tooltip.target?.chat.id === chat.id ? 'chat-tooltip' : undefined}
       onPointerEnter={(event) => tooltip.enter(event.currentTarget, chat, chat.cwd)}
@@ -53,7 +53,7 @@ export function ConversationRow({
     >
       <span className="chat-body">
         <span className="chat-title">{chat.title}</span>
-        <span className="chat-time">{active ? t('opening') : updated}</span>
+        <span className="chat-time">{active ? t('opening') : recency}</span>
       </span>
     </button>
   );

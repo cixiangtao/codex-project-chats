@@ -77,7 +77,7 @@ export class CodexClient {
   async list(roots: string[] | undefined, search: string, cursor: string | null): Promise<ChatPage> {
     await this.start();
     const params: Record<string, unknown> = {
-      archived: false, limit: 50, sortKey: 'updated_at', sortDirection: 'desc',
+      archived: false, limit: 50, sortKey: 'recency_at', sortDirection: 'desc',
       sourceKinds: ['vscode', 'cli', 'appServer'], useStateDbOnly: true,
     };
     if (roots !== undefined) {
