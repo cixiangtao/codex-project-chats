@@ -5,7 +5,7 @@ from pathlib import Path
 from zipfile import ZipFile
 
 manifest = json.loads(Path("package.json").read_text())
-archive = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(f"{manifest['name']}-{manifest['version']}.vsix")
+archive = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("release-artifact") / f"{manifest['name']}-{manifest['version']}.vsix"
 with ZipFile(archive) as package:
     names = package.namelist()
     packed = json.loads(package.read("extension/package.json"))

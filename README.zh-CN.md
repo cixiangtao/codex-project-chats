@@ -89,6 +89,8 @@ Vitest 直接运行 TypeScript 源码测试，`pnpm run check` 同时检查扩�
 
 运行 `pnpm dev` 可在 `http://127.0.0.1:5173/` 查看带 React 热更新的示例界面，追加 `?lang=en` 切换英文。预览使用示例数据；实际安装的扩展加载 VSIX 内的构建产物。
 
+运行 `pnpm run package` 后，VSIX 统一输出到 `release-artifact/codex-project-chats-<版本号>.vsix`。该目录会自动创建，已加入 Git 忽略规则。
+
 环境准备、示例界面预览和可选集成测试参阅 [CONTRIBUTING.md](https://github.com/cixiangtao/codex-project-chats/blob/main/CONTRIBUTING.md)。
 
 ## 接口参考
