@@ -48,9 +48,9 @@ const groups=sampleGroups.filter(g=>state.scope==='all'||g.current).map(g=>({...
 setTimeout(()=>window.postMessage({type:'state',...state,groups,count:groups.reduce((n,g)=>n+g.chats.length,0)},'*'),20);
 }}}`;
   const html = template.replace('{{LOCALIZATION}}', serializeLocalization(language)).replace(/<meta http-equiv="Content-Security-Policy"[^>]*>/, '')
-    .replace('<link rel="stylesheet" href="{{STYLE}}">', `<style>${theme}\n${css}</style>`)
+    .replace('<link rel="stylesheet" href="{{STYLE}}">', () => `<style>${theme}\n${css}</style>`)
     .replace('<body>', `<body><aside class="preview-label">Codex Project Chats · ${locale === 'zh-CN' ? '界面预览 / 示例数据' : 'Preview / sample data'}</aside>`)
-    .replace('<script type="module" nonce="{{NONCE}}" src="{{SCRIPT}}"></script>', `<script type="module">${bridge}\n${js}</script>`);
+    .replace('<script type="module" nonce="{{NONCE}}" src="{{SCRIPT}}"></script>', () => `<script type="module">${bridge}\n${js}</script>`);
   await fs.writeFile(process.argv[2], html);
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });

@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
+import { act } from 'react';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { mount } from '../webview/src/view';
@@ -21,84 +22,87 @@ function state(overrides: Partial<ViewState> = {}): ViewState {
     ...overrides,
   };
 }
-function receive(value: ViewState) { window.dispatchEvent(new MessageEvent('message', { data: value })); }
+async function interact(action: () => void) { await act(async () => { action(); }); }
+async function receive(value: ViewState) { await interact(() => window.dispatchEvent(new MessageEvent('message', { data: value }))); }
+async function advance(ms: number) { await act(async () => { await vi.advanceTimersByTimeAsync(ms); }); }
 function row() {
   const node = document.querySelector<HTMLButtonElement>('button.chat');
   if (!node) throw new Error('Expected a conversation row');
   return node;
 }
 
-beforeEach(() => {
+beforeEach(async () => {
   vi.useFakeTimers();
+  vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
   vi.setSystemTime(clock);
   vi.clearAllMocks();
   vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
   vi.spyOn(document, 'hidden', 'get').mockReturnValue(false);
   vi.stubGlobal('acquireVsCodeApi', () => ({ getState: () => undefined, setState, postMessage }));
   document.body.innerHTML = template.replace('{{LOCALIZATION}}', serializeLocalization('en')).match(/<body>([\s\S]*)<\/body>/)?.[1] || '';
-  dispose = mount();
+  await interact(() => { dispose = mount(); });
 });
-afterEach(() => {
-  dispose();
+afterEach(async () => {
+  await interact(dispose);
   document.body.replaceChildren();
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
   vi.useRealTimers();
 });
 
-test('busy and opening updates keep existing DOM rows, then restore keyboard focus', () => {
-  receive(state());
+test('busy and opening updates keep existing DOM rows, then restore keyboard focus', async () => {
+  await receive(state());
   const original = row();
-  original.focus();
-  receive(state({ busy: true }));
+  await interact(() => original.focus());
+  await receive(state({ busy: true }));
   expect(row()).toBe(original);
   expect(document.activeElement).toBe(original);
-  receive(state({ opening: 'thread-0001' }));
+  await receive(state({ opening: 'thread-0001' }));
   expect(row()).toBe(original);
   expect(original.disabled).toBe(true);
   expect(original.getAttribute('aria-busy')).toBe('true');
-  receive(state());
+  await receive(state());
   expect(row()).toBe(original);
   expect(original.disabled).toBe(false);
   expect(document.activeElement).toBe(original);
 });
 
-test('a refresh restores the matching row after results change without stealing search focus', () => {
-  receive(state());
-  row().focus();
-  receive(state({ groups: [], count: 0, busy: true }));
+test('a refresh restores the matching row after results change without stealing search focus', async () => {
+  await receive(state());
+  await interact(() => row().focus());
+  await receive(state({ groups: [], count: 0, busy: true }));
   const updated = state();
   updated.groups[0]!.chats[0]!.title = 'Updated title';
-  receive(updated);
+  await receive(updated);
   expect(document.activeElement).toBe(row());
   const search = document.getElementById('search');
-  search?.focus();
-  receive(state());
+  await interact(() => search?.focus());
+  await receive(state());
   expect(document.activeElement).toBe(search);
 });
 
 test('hover details preserve long titles as text and Escape dismisses them', async () => {
   const title = 'x'.repeat(220) + '<script>literal</script> END';
   const value = state(); value.groups[0]!.chats[0]!.title = title;
-  receive(value);
-  await vi.advanceTimersByTimeAsync(0);
-  row().dispatchEvent(new Event('pointerenter'));
-  await vi.advanceTimersByTimeAsync(350);
+  await receive(value);
+  await advance(0);
+  await interact(() => row().dispatchEvent(new Event('pointerover', { bubbles: true })));
+  await advance(350);
   const tooltip = document.getElementById('chat-tooltip');
   expect(tooltip?.hidden).toBe(false);
   expect(tooltip?.querySelector('.chat-tooltip-title')?.textContent).toBe(title);
   expect(tooltip?.querySelector('script')).toBeNull();
   expect(row().getAttribute('aria-describedby')).toBe('chat-tooltip');
-  window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+  await interact(() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' })));
   expect(tooltip?.hidden).toBe(true);
   expect(row().hasAttribute('aria-describedby')).toBe(false);
 });
 
 test('the visible clock updates row labels without replacing nodes or requesting history', async () => {
-  receive(state());
+  await receive(state());
   const original = row();
   expect(original.querySelector('.chat-time')?.textContent).toBe('Just now');
-  await vi.advanceTimersByTimeAsync(60_000);
+  await advance(60_000);
   expect(original.querySelector('.chat-time')?.textContent).toBe('1m ago');
   expect(original.getAttribute('aria-label')).toContain('1m ago');
   expect(row()).toBe(original);
@@ -106,60 +110,107 @@ test('the visible clock updates row labels without replacing nodes or requesting
 });
 
 test('hidden views stop their clock and update immediately when visible again', async () => {
-  receive(state());
-  await vi.advanceTimersByTimeAsync(0);
+  await receive(state());
+  await advance(0);
   vi.spyOn(document, 'hidden', 'get').mockReturnValue(true);
-  document.dispatchEvent(new Event('visibilitychange'));
+  await interact(() => document.dispatchEvent(new Event('visibilitychange')));
   expect(vi.getTimerCount()).toBe(0);
   vi.setSystemTime(clock + 3_600_000);
   vi.spyOn(document, 'hidden', 'get').mockReturnValue(false);
-  document.dispatchEvent(new Event('visibilitychange'));
+  await interact(() => document.dispatchEvent(new Event('visibilitychange')));
   expect(row().querySelector('.chat-time')?.textContent).toBe('1h ago');
   expect(vi.getTimerCount()).toBe(1);
 });
 
-test('IME composition sends only committed search text', () => {
+test('IME composition sends only committed search text', async () => {
   const search = document.querySelector<HTMLInputElement>('#search')!;
-  search.dispatchEvent(new CompositionEvent('compositionstart'));
-  search.value = 'zhong'; search.dispatchEvent(new Event('input'));
+  await interact(() => search.dispatchEvent(new CompositionEvent('compositionstart', { bubbles: true })));
+  await interact(() => { search.value = 'zhong'; search.dispatchEvent(new Event('input', { bubbles: true })); });
   expect(postMessage).toHaveBeenCalledOnce();
-  search.value = '中文'; search.dispatchEvent(new CompositionEvent('compositionend'));
+  await interact(() => { search.value = '中文'; search.dispatchEvent(new CompositionEvent('compositionend', { bubbles: true })); });
   expect(postMessage).toHaveBeenLastCalledWith({ type: 'search', value: '中文' });
 });
 
 test('search expansion does not overwrite the saved project collapse state', async () => {
-  receive(state());
-  await vi.advanceTimersByTimeAsync(0);
+  await receive(state());
+  await advance(0);
   const details = document.querySelector('details')!;
-  details.open = false;
-  await vi.advanceTimersByTimeAsync(0);
+  await interact(() => { details.open = false; });
+  await advance(0);
   expect(setState).toHaveBeenLastCalledWith({ collapsed: ['/fixture'], expanded: [] });
-  receive(state({ search: 'Sample' }));
+  await receive(state({ search: 'Sample' }));
   expect(document.querySelector('details')?.open).toBe(true);
-  await vi.advanceTimersByTimeAsync(0);
-  receive(state());
+  await advance(0);
+  await receive(state());
   expect(document.querySelector('details')?.open).toBe(false);
 });
 
 test('unmount removes message listeners, hover details, and pending clock work', async () => {
-  receive(state());
-  await vi.advanceTimersByTimeAsync(0);
-  dispose();
+  await receive(state());
+  await advance(0);
+  await interact(dispose);
   const before = document.getElementById('summary')?.textContent;
-  receive(state({ count: 0, groups: [] }));
+  await receive(state({ count: 0, groups: [] }));
   expect(document.getElementById('summary')?.textContent).toBe(before);
   expect(document.getElementById('chat-tooltip')).toBeNull();
   expect(vi.getTimerCount()).toBe(0);
 });
 
 
-test('replaced row listeners are released and cannot send stale navigation', () => {
-  receive(state());
+test('replaced row listeners are released and cannot send stale navigation', async () => {
+  await receive(state());
   const previous = row();
-  const updated = state(); updated.groups[0]!.chats[0]!.title = 'Changed result';
-  receive(updated);
-  previous.click();
+  const updated = state(); updated.groups[0]!.chats[0]!.id = 'thread-0002';
+  await receive(updated);
+  expect(previous.isConnected).toBe(false);
+  await interact(() => previous.click());
   expect(postMessage.mock.calls).toEqual([[{ type: 'ready' }]]);
-  row().click();
-  expect(postMessage).toHaveBeenLastCalledWith({ type: 'open', id: 'thread-0001' });
+  await interact(() => row().click());
+  expect(postMessage).toHaveBeenLastCalledWith({ type: 'open', id: 'thread-0002' });
+});
+
+test('stable conversation keys preserve the focused node when titles and ordering change', async () => {
+  const value = state();
+  value.groups[0]!.chats.push({ id: 'thread-0002', title: 'Another conversation', cwd: '/fixture', updatedAt: clock / 1000 });
+  await receive(value);
+  const original = row();
+  await interact(() => original.focus());
+  const updated = structuredClone(value);
+  updated.groups[0]!.chats.reverse();
+  updated.groups[0]!.chats[1]!.title = 'Renamed conversation';
+  await receive(updated);
+  expect(document.querySelectorAll('button.chat')[1]).toBe(original);
+  expect(original.querySelector('.chat-title')?.textContent).toBe('Renamed conversation');
+  expect(document.activeElement).toBe(original);
+});
+
+test('scope, pagination, and failure controls keep their host message contract', async () => {
+  await receive(state({ hasMore: true }));
+  await interact(() => document.getElementById('more')?.click());
+  expect(postMessage).toHaveBeenLastCalledWith({ type: 'more' });
+  await receive(state({ hasMore: true, error: 'Fixture failure' }));
+  expect(document.getElementById('error')?.hidden).toBe(false);
+  expect(document.getElementById('more')?.hidden).toBe(true);
+  await interact(() => document.getElementById('retry')?.click());
+  expect(postMessage).toHaveBeenLastCalledWith({ type: 'refresh' });
+  await interact(() => document.getElementById('all')?.click());
+  expect(postMessage).toHaveBeenLastCalledWith({ type: 'scope', value: 'all' });
+  await receive(state({ scope: 'all', count: 0, groups: [] }));
+  expect(document.getElementById('all')?.getAttribute('aria-pressed')).toBe('true');
+  expect(document.getElementById('empty')?.hidden).toBe(false);
+  expect(document.getElementById('empty-action')?.hidden).toBe(true);
+});
+
+test('React controls and hover details use the injected Chinese catalog', async () => {
+  await interact(dispose);
+  document.body.innerHTML = template.replace('{{LOCALIZATION}}', serializeLocalization('zh-CN')).match(/<body>([\s\S]*)<\/body>/)?.[1] || '';
+  await interact(() => { dispose = mount(); });
+  await receive(state());
+  expect(document.documentElement.lang).toBe('zh-CN');
+  expect(document.getElementById('current')?.textContent).toBe('当前项目');
+  expect(document.querySelector('input')?.placeholder).toBe('搜索对话标题');
+  await advance(0);
+  await interact(() => row().dispatchEvent(new Event('pointerover', { bubbles: true })));
+  await advance(350);
+  expect(document.querySelector('#chat-tooltip dt')?.textContent).toBe('更新于');
 });

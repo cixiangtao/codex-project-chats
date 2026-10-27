@@ -2,6 +2,7 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "module": "ESNext",
+    "jsx": "react-jsx",
     "moduleResolution": "Bundler",
     "lib": [
       "ES2022",
@@ -12,6 +13,7 @@
     "noEmit": true
   },
   "include": [
-    "webview/src/**/*.ts"
+    "webview/src/**/*.ts",
+    "webview/src/**/*.tsx"
   ]
 }

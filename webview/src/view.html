@@ -7,21 +7,7 @@
   <title>Project Chats</title>
 </head>
 <body>
-  <header>
-    <div class="scope" role="group" aria-label="Conversation scope" data-i18n-aria-label="scope">
-      <button id="current" type="button" aria-pressed="true" data-i18n="current">Current project</button>
-      <button id="all" type="button" aria-pressed="false" data-i18n="all">All projects</button>
-    </div>
-    <div class="search">
-      <svg aria-hidden="true" viewBox="0 0 16 16"><circle cx="6.8" cy="6.8" r="4.3"/><path d="m10 10 3.5 3.5"/></svg>
-      <input id="search" type="search" maxlength="200" placeholder="Search conversation titles" aria-label="Search conversation titles" data-i18n-placeholder="search" data-i18n-aria-label="search" autocomplete="off">
-    </div>
-    <div class="summary"><span id="summary" role="status" aria-live="polite" data-i18n="reading">Loading conversations…</span><button id="refresh" class="icon" type="button" title="Refresh conversations" aria-label="Refresh conversations" data-i18n-title="refresh" data-i18n-aria-label="refresh"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13 5a5.4 5.4 0 1 0 .1 5M13 1.8V5H9.8"/></svg></button></div>
-  </header>
-  <main id="groups" aria-label="Conversations grouped by project" data-i18n-aria-label="groups"></main>
-  <section id="empty" hidden><p id="empty-title"></p><p id="empty-detail"></p><button id="empty-action" type="button" hidden data-i18n="viewAll">View all projects</button></section>
-  <div id="error" role="alert" hidden><p id="error-text"></p><button id="retry" type="button" data-i18n="retry">Retry</button></div>
-  <footer><button id="more" type="button" hidden data-i18n="more">Load more conversations</button><span id="footer"></span></footer>
+  <div id="root"></div>
   <script id="localization" type="application/json" nonce="{{NONCE}}">{{LOCALIZATION}}</script>
   <script type="module" nonce="{{NONCE}}" src="{{SCRIPT}}"></script>
 </body>
