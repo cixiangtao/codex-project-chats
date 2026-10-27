@@ -29,7 +29,7 @@
     "package": "vsce package --no-dependencies",
     "vscode:prepublish": "pnpm run build",
     "preview": "pnpm run build && node test/preview.mjs",
-    "release:check": "node scripts/release.mjs check",
+    "release:check": "node scripts/check-release.mjs",
     "release:prepare": "release-it",
     "release:dry": "release-it --dry-run",
     "release:verify": "python3 scripts/marketplace.py"

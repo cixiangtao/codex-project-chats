@@ -20,7 +20,7 @@ readline.createInterface({input:process.stdin}).on('line', line => {
   process.stdout.write(JSON.stringify({id:msg.id,result})+'\\n');
 });
 `, { mode: 0o700 });
-  const client = new CodexClient(binary);
+  const client = new CodexClient(binary, '9.8.7');
   try {
     const first = await client.list(['/repo/a', '/repo/b'], '登录', null);
     assert.equal(first.nextCursor, 'second');
@@ -28,6 +28,7 @@ readline.createInterface({input:process.stdin}).on('line', line => {
     await client.list(undefined, '', null);
     const calls: WireCall[] = (await fs.readFile(trace, 'utf8')).trim().split('\n').map(line => JSON.parse(line));
     assert.deepEqual(calls.slice(0, 2).map(call => call.method), ['initialize', 'initialized']);
+    expect(calls[0]?.params.clientInfo).toMatchObject({ version: '9.8.7' });
     const pages = calls.filter(call => call.method === 'thread/list');
     for (const call of pages.slice(0, 2)) {
       assert.deepEqual(call.params.cwd, ['/repo/a', '/repo/b']);
@@ -50,7 +51,7 @@ readline.createInterface({input:process.stdin}).on('line', line => {
 
 for (const [language, message] of [['en', /Could not start Codex/], ['zh-CN', /无法启动/]] as const) {
   test(`a missing executable produces a recoverable error in ${language}`, async () => {
-    const client = new CodexClient('/missing/codex-executable-for-test', language);
+    const client = new CodexClient('/missing/codex-executable-for-test', '9.8.7', language);
     try { await assert.rejects(client.list(undefined, '', null), message); }
     finally { client.dispose(); }
   });

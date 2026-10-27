@@ -1,9 +1,11 @@
 // Explicit opt-in: query metadata only, and never print titles, cwd values, IDs or transcripts.
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import { CodexClient } from '../dist/client.js';
 async function main() {
   if (!process.env.CODEX_LIVE_BINARY) throw new Error('Set CODEX_LIVE_BINARY explicitly.');
-  const client = new CodexClient(process.env.CODEX_LIVE_BINARY);
+  const { version } = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'));
+  const client = new CodexClient(process.env.CODEX_LIVE_BINARY, version);
   try {
     const first = await client.list(undefined, '', null);
     const project = await client.list([process.cwd()], '', null);

@@ -40,7 +40,7 @@ To try the extension in VS Code, install a locally built VSIX in a separate VS C
 
 ## Release boundary
 
-`package.json` owns the extension version. release-it synchronizes it with the app-server client version in `src/client.ts` and generates `CHANGELOG.md` from Conventional Commits. pnpm's lockfile tracks dependencies, not the root extension version. `pnpm run release:check` validates the version files and release configuration.
+`package.json` owns the extension version. The app-server client receives that version from the installed extension manifest. release-it updates the manifest and generates `CHANGELOG.md` from Conventional Commits. pnpm's lockfile tracks dependencies, not the root extension version. `pnpm run release:check` validates the version files and release configuration.
 
 Follow the [Marketplace release procedure](docs/releasing.md): run `pnpm run release:dry patch` to preview a release and `pnpm run release:prepare patch` on a clean branch to prepare it. Inspect the generated changelog, submit the changes through a PR, and upload the inspected VSIX manually after required CI passes. Record the version tag only after verifying the public Marketplace payload. release-it does not commit, tag, push, publish to npm, or create a GitHub Release.
 

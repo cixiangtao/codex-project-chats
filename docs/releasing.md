@@ -24,7 +24,7 @@ Before preparing another version, resolve any pending Marketplace upload and ver
    pnpm run release:prepare patch
    ```
 
-   release-it updates `package.json`, the app-server client version in `src/client.ts`, and `CHANGELOG.md`. It runs consistency checks before and after preparation. Review the generated changelog and edit its wording if needed. `pnpm-lock.yaml` does not store the root extension version and needs no version-only edit.
+   release-it updates `package.json` and `CHANGELOG.md`. It runs consistency checks before and after preparation. Review the generated changelog and edit its wording if needed. `pnpm-lock.yaml` does not store the root extension version and needs no version-only edit.
 
 3. Validate the prepared change:
 
@@ -63,4 +63,4 @@ A tag does not trigger an upload. Never tag a pending or mismatched Marketplace 
 
 ## Retry preparation
 
-Preparation requires a clean tracked working tree. If a hook fails after files were updated, inspect the diff and repair those files before rerunning checks. To abandon preparation, restore only the three version files after confirming that their changes came solely from this preparation. Do not use a repository-wide hard reset or change an already public version.
+Preparation requires a clean tracked working tree. If a hook fails after files were updated, inspect the diff and repair those files before rerunning checks. To abandon preparation, restore only the two version files after confirming that their changes came solely from this preparation. Do not use a repository-wide hard reset or change an already public version.

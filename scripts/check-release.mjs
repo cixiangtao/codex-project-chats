@@ -9,15 +9,12 @@ export function validateVersion(version) {
   return version;
 }
 
-/** Keep the package and local app-server handshake on the same version. */
-export function validateVersionFiles(manifest, client, changelog) {
+/** Check the manifest and the first changelog version before distribution. */
+export function validateVersionFiles(manifest, changelog) {
   const version = validateVersion(manifest.version);
   assert.equal(manifest.name, 'codex-project-chats');
   assert.equal(manifest.publisher, 'cixiangtao');
   assert.equal(manifest.private, true);
-  const versions = [...client.matchAll(/version: '(\d+\.\d+\.\d+)'/g)];
-  assert.equal(versions.length, 1, 'Expected exactly one app-server version.');
-  assert.equal(versions[0][1], version, 'App-server client version is stale.');
   const heading = changelog.split(/\r?\n/).find(line => line.startsWith('## '));
   assert(heading === `## ${version}` || heading?.startsWith(`## [${version}]`) || heading?.startsWith(`## ${version} (`),
     'Changelog must start with the current version.');
@@ -33,9 +30,9 @@ export function validateReleaseConfig(config) {
 }
 
 function main() {
-  assert.equal(process.argv[2], 'check', 'Use the check command. Version preparation is owned by release-it.');
+  assert.equal(process.argv[2], undefined, 'Run this script without arguments. Version preparation is owned by release-it.');
   const manifest = JSON.parse(readFileSync('package.json', 'utf8'));
-  const version = validateVersionFiles(manifest, readFileSync('src/client.ts', 'utf8'), readFileSync('CHANGELOG.md', 'utf8'));
+  const version = validateVersionFiles(manifest, readFileSync('CHANGELOG.md', 'utf8'));
   validateReleaseConfig(JSON.parse(readFileSync('.release-it.json', 'utf8')));
   console.log(`Release preparation checked: ${version}; publication, commits, tags, and pushes are disabled.`);
 }

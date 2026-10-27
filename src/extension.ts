@@ -124,7 +124,7 @@ class ProjectChatsView implements vscode.WebviewViewProvider, vscode.Disposable 
       if (this.scope === 'current' && !roots.length) { this.lastRefresh = Date.now(); return; }
       const binary = await getBinary();
       if (generation !== this.generation || this.disposed) return;
-      if (!this.client || binary !== this.binary) { this.client?.dispose(); this.client = new CodexClient(binary, vscode.env.language); this.binary = binary; }
+      if (!this.client || binary !== this.binary) { this.client?.dispose(); this.client = new CodexClient(binary, this.context.extension.packageJSON.version, vscode.env.language); this.binary = binary; }
       const page = await this.client.list(this.scope === 'current' ? roots : undefined, this.search, append ? this.cursor : null);
       if (generation !== this.generation || this.disposed) return;
       this.chats = [...new Map([...this.chats, ...page.chats].map(chat => [chat.id, chat])).values()];
