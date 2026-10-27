@@ -1,12 +1,40 @@
-# Marketplace release automation
+# Marketplace releases
 
 ## Current activation state
 
-The workflow is prepared but disabled until its two dedicated identities are configured and verified. `RELEASE_AUTOMATION_ENABLED` must remain unset or `false` during setup. A merged configuration PR is not proof of working Marketplace authentication. The repository's initial public version remains `0.1.1`; this migration must not bump or publish it.
+**Manual Marketplace upload is the current release method.** The maintainer has chosen this path while Microsoft Entra setup is unavailable. The prepared automated workflow remains disabled: keep `RELEASE_AUTOMATION_ENABLED` unset or `false` until the identities below are configured and verified. A successful GitHub App check does not establish Marketplace publishing access.
 
-Only Marketplace receives plugin releases. No GitHub Release or npm package is created. After the exact inspected VSIX becomes publicly available and its payload matches, Actions creates a lightweight `v<version>` Git tag at the approved release PR merge commit and updates that PR's lifecycle labels. Release Please uses the tag as the next release baseline.
+Only Marketplace receives extension releases. No GitHub Release or npm package is created. Do not upload a version manually while automated publishing is enabled.
 
-## Normal operation
+## Current manual release procedure
+
+1. Prepare a focused PR with the product changes, updated screenshots and usage instructions. Keep `package.json`, the two root version fields in `package-lock.json`, `.release-please-manifest.json`, the marked version in `src/client.ts`, and `CHANGELOG.md` in sync.
+2. Run the following with Node.js 22, then merge the PR only after required CI passes:
+
+   ```sh
+   npm run check
+   npm test
+   node scripts/release.mjs versions
+   python3 -m unittest discover -s test -p '*_test.py'
+   npm audit --audit-level=high
+   npm run package
+   python3 scripts/verify-vsix.py
+   ```
+
+3. Use the inspected VSIX from the merged commit's CI artifact, or rebuild from that exact commit and inspect it again. Open the [publisher management page](https://marketplace.visualstudio.com/manage/publishers/cixiangtao), select the existing **Codex Project Chats** extension, and upload the VSIX as an update. Keep publisher `cixiangtao` and extension ID `codex-project-chats` unchanged.
+4. Wait for Marketplace validation. An accepted upload is **submitted**, not yet a public release. After it is public, verify the complete extension payload against the inspected package:
+
+   ```sh
+   python3 scripts/marketplace.py codex-project-chats-<version>.vsix
+   ```
+
+5. Only after that verification succeeds, create and push a lightweight `v<version>` Git tag at the exact merged commit. Leave automated publishing disabled. The synchronized manifest and tag provide a baseline if Release Please is enabled later.
+
+Use `node test/preview.cjs /tmp/codex-project-chats-preview.html` after building to generate the production interface with synthetic data for screenshots. Never capture real history or personal project paths for public documentation.
+
+## Future automated operation
+
+The sections below describe the prepared workflow, not the current manual upload path. Before switching, verify the public Marketplace version, manifest and latest version tag agree so the controller starts from the manually published baseline.
 
 1. Merge ordinary feature/fix PRs through `main`'s required CI. Use Conventional Commit squash titles.
 2. Release Please creates or updates `release-please--branches--main` using a dedicated GitHub App. It updates only `package.json`, the root version fields in `package-lock.json`, `CHANGELOG.md`, `.release-please-manifest.json`, and the marked client version in `src/client.ts`.
@@ -14,7 +42,7 @@ Only Marketplace receives plugin releases. No GitHub Release or npm package is c
 4. `.github/workflows/release.yml` verifies the PR author, branch, merge commit, successful CI, protected-branch ancestry, and allowed metadata-only diff. It rebuilds and inspects one VSIX and records its commit/PR identity and checksum.
 5. The `marketplace` environment job downloads that same artifact, obtains a short-lived Microsoft Entra token, uploads through `vsce`, and reconciles the public Marketplace payload before tagging the commit. No browser upload or CAPTCHA is part of this pipeline.
 
-The manifest's `preview: true` describes Marketplace maturity. The workflow uses ordinary numeric VS Code versions and does not switch to the separate Marketplace pre-release channel.
+The manifest's `preview: true` describes Marketplace maturity. Both release paths use ordinary numeric VS Code versions and do not switch to the separate Marketplace pre-release channel. After public payload verification, the automated path creates the tag and lifecycle labels itself.
 
 ## One-time GitHub App setup
 

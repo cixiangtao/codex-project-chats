@@ -11,12 +11,24 @@ A small VS Code extension for developers who work across several repositories. I
 ## Install and use
 
 1. Install and sign in to the official [Codex extension](https://marketplace.visualstudio.com/items?itemName=openai.chatgpt).
-2. Find **Codex Project Chats** by publisher **cixiangtao**, or search `@id:cixiangtao.codex-project-chats` in VS Code. If the initial Marketplace submission is still under verification, the listing will become available after approval. For local builds, use **Extensions → … → Install from VSIX**.
+2. Find **Codex Project Chats** by publisher **cixiangtao**, or search `@id:cixiangtao.codex-project-chats` in VS Code. For an offline package, use **Extensions → … → Install from VSIX**.
 3. Open a project folder and select **Codex 项目对话** in the Activity Bar. You can also run **Codex Project Chats: 打开项目对话** from the Command Palette.
 4. Choose **当前项目** (current project) or **全部项目** (all projects). Search by title and expand a project to select a conversation.
 5. Continue in your existing official Codex view. If Codex is on the right, the conversation opens there without creating an editor tab.
 
 [Marketplace listing](https://marketplace.visualstudio.com/items?itemName=cixiangtao.codex-project-chats) · [Report a problem](https://github.com/cixiangtao/codex-project-chats/issues)
+
+## Browse conversations
+
+| Action | How it works |
+| --- | --- |
+| Find a conversation | Select **当前项目** for workspace roots, or **全部项目** for other directories. Enter part of its title to search. |
+| Check recency | Each compact row shows its title and **last-update time**. Conversations in a project are sorted newest first. Labels such as `昨天` (yesterday) or `10/17` help narrow the list; they are not creation times. |
+| Read full details | Hover over a row to see its complete title, update time to the minute, and project path. The tooltip sits toward the right, leaving a clear mouse lane on the left for moving between rows. |
+| Use the keyboard | Press Tab to focus a conversation and reveal its details, Enter or Space to open it, and Esc to dismiss the tooltip. |
+| Refresh or load more | Use the refresh icon to fetch recent changes. Select **加载更多对话** for the next page; project counts describe loaded matches. |
+
+Long titles are shortened in the list. Full details wrap in the tooltip, with scrolling for unusually long content. Missing update metadata is labeled **时间未知** (time unknown).
 
 ## Preview
 
@@ -24,7 +36,11 @@ Both images use sample data, not real conversation history.
 
 | Current project | All projects |
 | --- | --- |
-| ![Current project with three sample conversations](https://raw.githubusercontent.com/cixiangtao/codex-project-chats/main/docs/images/current-project.png) | ![Projects grouped by cwd, including identical folder names](https://raw.githubusercontent.com/cixiangtao/codex-project-chats/main/docs/images/all-projects.png) |
+| ![Compact current-project conversation list with update times](https://raw.githubusercontent.com/cixiangtao/codex-project-chats/main/docs/images/current-project.png) | ![Projects grouped by cwd, including identical folder names](https://raw.githubusercontent.com/cixiangtao/codex-project-chats/main/docs/images/all-projects.png) |
+
+Hover details show the full title, last-update time, and path while leaving the left side available for switching rows:
+
+![Compact right-aligned hover details with a clear pointer lane on the left](https://raw.githubusercontent.com/cixiangtao/codex-project-chats/main/docs/images/hover-details.png)
 
 ## What it does
 
@@ -71,10 +87,12 @@ The VSIX is generated in the repository root. There are no runtime npm dependenc
 
 CI runs the tests on Linux, macOS, and Windows and inspects a VSIX on Linux. One POSIX executable fixture is explicitly skipped on Windows. These checks do not replace a real VS Code/official Codex integration test. Live-history and extension-host tests are opt-in; see [CONTRIBUTING.md](https://github.com/cixiangtao/codex-project-chats/blob/main/CONTRIBUTING.md).
 
-Repository documentation and metadata may be ahead of the last Marketplace package; editing this repository does not update an already uploaded VSIX. CI itself does not publish. A separate [Marketplace release workflow](https://github.com/cixiangtao/codex-project-chats/blob/main/docs/releasing.md) creates version PRs and publishes only after the approved version PR is merged. It remains disabled until its dedicated GitHub App and Microsoft Entra identities are configured. No GitHub Release or npm package is created. The initial 0.1.1 package was submitted manually.
+Repository documentation and metadata may be ahead of the last Marketplace package; editing this repository does not update an already uploaded VSIX. Marketplace releases are currently packaged and uploaded manually after CI passes. The prepared automated workflow stays disabled until its Microsoft Entra publishing identity is configured. See the [release procedure](https://github.com/cixiangtao/codex-project-chats/blob/main/docs/releasing.md). No GitHub Release or npm package is created.
 
 ## Support and license
 
 Use [Issues](https://github.com/cixiangtao/codex-project-chats/issues) for bugs and scoped feature requests. Follow [SECURITY.md](https://github.com/cixiangtao/codex-project-chats/blob/main/SECURITY.md) for private vulnerability reports. See [SUPPORT.md](https://github.com/cixiangtao/codex-project-chats/blob/main/SUPPORT.md) for safe diagnostics.
 
 [MIT](https://github.com/cixiangtao/codex-project-chats/blob/main/LICENSE). Independently implemented; no History Viewer source code was copied.
+
+The custom icon combines the blossom used by the official Codex extension with a project-folder badge. OpenAI and Codex marks belong to OpenAI; the icon does not indicate affiliation or endorsement.

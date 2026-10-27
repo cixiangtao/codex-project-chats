@@ -5,10 +5,15 @@ const { groupChats } = require('../dist/model.js');
 async function main() {
   const root = '/projects/codex-project-chats';
   const now = Math.floor(Date.now() / 1000);
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1); yesterday.setHours(12, 0, 0, 0);
   const chats = [
-    ['thread-0001', root, '按项目整理 Codex 对话', now - 180],
+    ['thread-0001', root, '调整对话列表的紧凑布局与悬停详情', now - 180],
     ['thread-0002', root, '修复侧栏搜索与分页', now - 3600],
-    ['thread-0003', root, '检查官方 Codex 跳转入口', now - 7200],
+    ['thread-0003', root, '检查官方 Codex 跳转入口与侧栏位置兼容性', now - 7200],
+    ['thread-0009', root, '整理扩展的安装与使用说明', Math.floor(yesterday.getTime() / 1000)],
+    ['thread-0010', root, '排查多根工作区的目录匹配', now - 864000],
+    ['thread-0011', root, '整理上一年度的兼容性记录', Math.floor(new Date(new Date().getFullYear() - 1, 11, 18).getTime() / 1000)],
     ['thread-0004', '/projects/website', '调整首页导航', now - 10000],
     ['thread-0005', '/projects/website', '优化移动端布局', now - 20000],
     ['thread-0006', '/projects/api-service', '排查登录接口', now - 40000],
