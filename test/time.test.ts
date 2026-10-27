@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { createTimeFormatter } from '../media/time.js';
+import { createTimeFormatter } from '../webview/src/time';
 import { createLocalizer } from '../src/i18n';
 
 const en = createTimeFormatter('en', createLocalizer('en'));

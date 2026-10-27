@@ -1,3 +1,5 @@
+import type { Localize, MessageKey, localization } from '../../src/i18n';
+import type { ViewState, WebviewMessage } from '../../src/protocol';
 import { createTimeFormatter } from './time.js';
 import { createTooltip } from './tooltip.js';
 
@@ -6,62 +8,53 @@ export function mount() {
   const controller = new AbortController();
   const { signal } = controller;
   const host = acquireVsCodeApi();
-  /** @param {string} id */
-  const $ = id => {
+  const $ = (id: string) => {
     const node = document.getElementById(id);
     if (!node) throw new Error(`Missing view element: ${id}`);
     return node;
   };
-  /** @param {string} id */
-  const button = id => {
+  const button = (id: string) => {
     const node = $(id);
     if (!(node instanceof HTMLButtonElement)) throw new Error(`Expected button: ${id}`);
     return node;
   };
   const search = $('search');
   if (!(search instanceof HTMLInputElement)) throw new Error('Missing search input');
-  /** @type {ReturnType<typeof import('../src/i18n').localization>} */
-  const { locale, messages } = JSON.parse($('localization').textContent || '{}');
-  /** @type {import('../src/i18n').Localize} */
-  const t = (key, values = {}) => messages[key].replace(/\{(\w+)\}/g,
-    (placeholder, name) => values[name] === undefined ? placeholder : String(values[name]));
+  const { locale, messages }: ReturnType<typeof localization> = JSON.parse($('localization').textContent || '{}');
+  const t: Localize = (key, values = {}) => messages[key].replace(/\{(\w+)\}/g,
+    (placeholder: string, name: string) => values[name] === undefined ? placeholder : String(values[name]));
+  const isMessageKey = (key: string | null): key is MessageKey => key !== null && Object.hasOwn(messages, key);
   document.documentElement.lang = locale;
   document.title = t('viewTitle');
   for (const node of document.querySelectorAll('[data-i18n]')) {
     const key = node.getAttribute('data-i18n');
-    if (key && key in messages) node.textContent = t(/** @type {import('../src/i18n').MessageKey} */ (key));
+    if (isMessageKey(key)) node.textContent = t(key);
   }
   for (const attribute of ['aria-label', 'placeholder', 'title']) {
     for (const node of document.querySelectorAll(`[data-i18n-${attribute}]`)) {
       const key = node.getAttribute(`data-i18n-${attribute}`);
-      if (key && key in messages) node.setAttribute(attribute, t(/** @type {import('../src/i18n').MessageKey} */ (key)));
+      if (isMessageKey(key)) node.setAttribute(attribute, t(key));
     }
   }
-  /** @param {'projects' | 'loaded' | 'chats'} kind @param {number} count */
-  const countLabel = (kind, count) => t(`${kind}${count === 1 ? 'One' : 'Other'}`, { count });
+  const countLabel = (kind: 'projects' | 'loaded' | 'chats', count: number) => t(`${kind}${count === 1 ? 'One' : 'Other'}`, { count });
   const previous = host.getState() || {};
   const collapsed = new Set(previous.collapsed || []);
   const expanded = new Set(previous.expanded || []);
-  /** @type {import('../src/protocol').ViewState | undefined} */
-  let lastState;
+  let lastState: ViewState | undefined;
   let renderedGroups = '';
   let rowsController = new AbortController();
   let focusId = '';
-  /** @type {ReturnType<typeof setInterval> | undefined} */
-  let clockTimer;
+  let clockTimer: ReturnType<typeof setInterval> | undefined;
   let composing = false;
-  /** @param {import('../src/protocol').WebviewMessage} message */
-  const send = message => host.postMessage(message);
+  const send = (message: WebviewMessage) => host.postMessage(message);
   const persist = () => host.setState({ collapsed: [...collapsed], expanded: [...expanded] });
-  /** @template {keyof HTMLElementTagNameMap} K @param {K} tag @param {string} [className] @param {string} [text] */
-  const element = (tag, className, text) => {
+  const element = <K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string) => {
     const node = document.createElement(tag);
     if (className) node.className = className;
     if (text !== undefined) node.textContent = text;
     return node;
   };
-  /** @param {string} kind @param {string} [className] */
-  const icon = (kind, className = '') => {
+  const icon = (kind: string, className = '') => {
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('viewBox', '0 0 16 16'); svg.setAttribute('aria-hidden', 'true');
     if (className) svg.setAttribute('class', className);
@@ -98,8 +91,7 @@ export function mount() {
   };
   document.addEventListener('visibilitychange', scheduleClock, { signal });
   scheduleClock();
-  /** @param {import('../src/protocol').ViewState} state */
-  const render = state => {
+  const render = (state: ViewState) => {
     tooltip.hide();
     const oldTop = window.scrollY;
     lastState = state;
@@ -186,8 +178,7 @@ export function mount() {
   search.addEventListener('compositionstart', () => { composing = true; }, { signal });
   search.addEventListener('compositionend', () => { composing = false; send({ type: 'search', value: search.value }); }, { signal });
   search.addEventListener('input', () => { if (!composing) send({ type: 'search', value: search.value }); }, { signal });
-  /** @param {MessageEvent<import('../src/protocol').ViewState>} event */
-  const receive = event => { if (event.data?.type === 'state') render(event.data); };
+  const receive = (event: MessageEvent<ViewState>) => { if (event.data?.type === 'state') render(event.data); };
   window.addEventListener('message', receive, { signal });
   window.addEventListener('pageshow', () => { if (lastState) render(lastState); }, { signal });
   send({ type: 'ready' });

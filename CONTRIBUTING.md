@@ -15,11 +15,13 @@ pnpm run package
 
 With nvm, run `nvm install` and `nvm use` to select the development runtime. Corepack users can run `corepack pnpm` in place of `pnpm`. If your global pnpm is older, `npx --yes pnpm@12.15.0 <command>` runs the pinned version without changing the global installation. Build-script permissions and dependency overrides are declared in `pnpm-workspace.yaml`.
 
-`pnpm run check` type-checks the extension, tests, and Webview JavaScript (JSDoc with `checkJs`). Vitest runs `.test.ts` files directly against the source, using a module mock for the VS Code API. Controller tests cover disposal and stale requests; jsdom tests exercise focus, tooltip content, IME search, collapse state, and visibility-aware time labels. DOM simulation does not verify browser layout or the real VS Code host. Use `pnpm run test:watch` for watch mode. The extension output remains CommonJS for the VS Code extension host; changing the test runner does not change its runtime format.
+`pnpm run check` type-checks the extension, tests, and Webview TypeScript. Vitest runs `.test.ts` files directly against the source, using a module mock for the VS Code API. Controller tests cover disposal and stale requests; jsdom tests exercise focus, tooltip content, IME search, collapse state, and visibility-aware time labels. DOM simulation does not verify browser layout or the real VS Code host. Use `pnpm run test:watch` for watch mode. The extension host compiles to CommonJS in `dist/extension/`. esbuild bundles the browser entry from `webview/src/main.ts` into `dist/webview/main.js`; its HTML and CSS are copied alongside it. `pnpm run build` cleans `dist/` first, so old output cannot leak into a package. esbuild transpiles and bundles; `pnpm run check` remains the type-checking gate.
 
 Tests use generated local fixtures. They do not require a Codex login or read your real history. A POSIX executable fixture is skipped on Windows. CI builds and packages the extension but does not claim end-to-end compatibility with the official extension.
 
-Generate a sample-data interface preview with `pnpm run preview /tmp/codex-project-chats-preview.html`. Append `en` for English; the default is Simplified Chinese.
+The source directories are `src/` for the extension host, `webview/src/` for the interface, and `media/` for icons. `webview/src/vscode.d.ts` declares the browser bridge, and the UI imports shared message/localization types from `src/` using type-only imports. Edit these source files, not generated `dist/` files.
+
+Generate a sample-data interface preview with `pnpm run preview /tmp/codex-project-chats-preview.html`. Append `en` for English; the default is Simplified Chinese. The preview embeds the actual built browser bundle.
 
 To try the extension in VS Code, install a locally built VSIX in a separate VS Code profile with the official Codex extension installed and signed in. Use sample conversations and a disposable workspace when checking UI behavior.
 

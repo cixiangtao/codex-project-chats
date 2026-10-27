@@ -1,8 +1,8 @@
 // Generate a standalone preview using the production HTML/CSS/JS with an explicit sample-data bridge.
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { localization, serializeLocalization } from '../dist/i18n.js';
-import { groupChats } from '../dist/model.js';
+import { localization, serializeLocalization } from '../dist/extension/i18n.js';
+import { groupChats } from '../dist/extension/model.js';
 async function main() {
   const language = process.argv[3] || 'zh-CN';
   const { locale } = localization(language);
@@ -37,9 +37,8 @@ async function main() {
     ['thread-0008', '/projects/personal/app', '整理个人项目配置', now - 60000],
   ].map(([id, cwd, title, updatedAt]) => ({ id, cwd, title: locale === 'en' ? englishTitles[id] : title, updatedAt }));
   const groups = groupChats(chats, [root]);
-  const media = path.resolve(import.meta.dirname, '../media');
-  const [template, css, ...modules] = await Promise.all(['view.html', 'view.css', 'time.js', 'tooltip.js', 'view.js', 'main.js'].map(name => fs.readFile(path.join(media, name), 'utf8')));
-  const js = modules.map(source => source.replace(/^import .*;$/gm, '').replace(/^export /gm, '')).join('\n');
+  const output = path.resolve(import.meta.dirname, '../dist/webview');
+  const [template, css, js] = await Promise.all(['view.html', 'view.css', 'main.js'].map(name => fs.readFile(path.join(output, name), 'utf8')));
   const theme = `:root{--vscode-sideBar-background:#181818;--vscode-sideBar-foreground:#ccc;--vscode-foreground:#ccc;--vscode-font-size:13px;--vscode-font-family:-apple-system,BlinkMacSystemFont,sans-serif;--vscode-input-background:#313131;--vscode-input-foreground:#ccc;--vscode-input-placeholderForeground:#aaa;--vscode-input-border:#3c3c3c;--vscode-widget-border:#313131;--vscode-list-activeSelectionBackground:#04395e;--vscode-list-activeSelectionForeground:#fff;--vscode-list-hoverBackground:#2a2d2e;--vscode-descriptionForeground:#aaa;--vscode-textLink-foreground:#4daafc;--vscode-focusBorder:#007fd4;--vscode-button-secondaryBackground:#313131;--vscode-button-secondaryForeground:#ccc;--vscode-button-secondaryHoverBackground:#3c3c3c;--vscode-toolbar-hoverBackground:#2a2d2e;--vscode-scrollbarSlider-background:#79797966;--vscode-scrollbarSlider-hoverBackground:#646464b3;--vscode-editor-selectionBackground:#264f78;--vscode-errorForeground:#f48771;}body{max-width:360px;min-height:680px;border-right:1px solid #313131}.preview-label{padding:7px 12px;border-bottom:1px solid #313131;font-size:11px;color:#aaa}`;
   const bridge = `const sampleGroups=${JSON.stringify(groups)};let state={scope:'current',search:'',busy:false,opening:null,error:'',hasMore:false,hasWorkspace:true,lastRefresh:Date.now()};let saved;
 function acquireVsCodeApi(){return{getState:()=>saved,setState:v=>{saved=v},postMessage:msg=>{

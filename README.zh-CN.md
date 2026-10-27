@@ -83,7 +83,7 @@ pnpm test
 pnpm run package
 ```
 
-Vitest 直接运行 TypeScript 源码测试，`pnpm run check` 同时检查扩展源码、测试和 Webview 的类型。开发时可使用 `pnpm run test:watch`。扩展仍编译为适用于 VS Code 扩展宿主的 CommonJS，输出到 `dist/`，无运行时依赖。VSIX 仅包含运行代码、媒体资源和公开文档。
+Vitest 直接运行 TypeScript 源码测试，`pnpm run check` 同时检查扩展源码、测试和 Webview 的类型。开发时可使用 `pnpm run test:watch`。扩展宿主代码编译为 CommonJS，输出到 `dist/extension/`；`webview/src/` 中的 TypeScript 界面代码通过 esbuild 打包到 `dist/webview/`。`media/` 仅保留图标资源。项目无运行时依赖。VSIX 仅包含运行代码、媒体资源和公开文档。
 
 环境准备、示例界面预览和可选集成测试参阅 [CONTRIBUTING.md](https://github.com/cixiangtao/codex-project-chats/blob/main/CONTRIBUTING.md)。
 

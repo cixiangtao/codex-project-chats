@@ -86,7 +86,7 @@ pnpm test
 pnpm run package
 ```
 
-Vitest runs TypeScript tests directly against the source; `pnpm run check` checks extension, test, and Webview types. Use `pnpm run test:watch` while developing. The extension still compiles to CommonJS for the VS Code extension host.
+Vitest runs TypeScript tests directly against the source; `pnpm run check` checks extension, test, and Webview types. Use `pnpm run test:watch` while developing. The extension host compiles to CommonJS in `dist/extension/`; the TypeScript interface in `webview/src/` is bundled with esbuild into `dist/webview/`. `media/` contains icons.
 
 The VSIX is generated in the repository root. There are no runtime dependencies; only compiled code, local media, and public documentation are packaged. This is a VS Code extension, not an npm library (`private: true` prevents accidental npm publication).
 

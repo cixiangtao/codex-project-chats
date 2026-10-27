@@ -3,11 +3,15 @@
   "compilerOptions": {
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "rootDir": ".",
-    "noEmit": true,
-    "allowJs": true,
-    "checkJs": true
+    "noEmit": true
   },
-  "include": ["media/*.js", "types/*.d.ts"]
+  "include": [
+    "webview/src/**/*.ts"
+  ]
 }

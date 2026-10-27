@@ -1,13 +1,10 @@
-/**
- * Format update times against one clock value, using calendar dates across DST changes.
- * @param {string} locale
- * @param {import('../src/i18n').Localize} t
- */
-export function createTimeFormatter(locale, t) {
+import type { Localize } from '../../src/i18n';
+
+/** Format update times against one clock value, using calendar dates across DST changes. */
+export function createTimeFormatter(locale: string, t: Localize) {
   const shortDate = new Intl.DateTimeFormat(locale, { month: 'short', day: 'numeric' });
   const fullDate = new Intl.DateTimeFormat(locale, { month: 'short', day: 'numeric', year: 'numeric' });
-  /** @param {number} seconds @param {number} [clock] */
-  return (seconds, clock = Date.now()) => {
+  return (seconds: number, clock = Date.now()) => {
     if (!Number.isFinite(seconds) || seconds <= 0) return t('unknownTime');
     const date = new Date(seconds * 1000);
     if (!Number.isFinite(date.getTime())) return t('unknownTime');
@@ -15,8 +12,7 @@ export function createTimeFormatter(locale, t) {
     if (minutes < 1) return t('now');
     if (minutes < 60) return t('minutesAgo', { count: minutes });
     const now = new Date(clock);
-    /** @param {Date} value */
-    const dayNumber = value => Date.UTC(value.getFullYear(), value.getMonth(), value.getDate()) / 86400000;
+    const dayNumber = (value: Date) => Date.UTC(value.getFullYear(), value.getMonth(), value.getDate()) / 86400000;
     const days = dayNumber(now) - dayNumber(date);
     if (days === 0) return t('hoursAgo', { count: Math.floor(minutes / 60) });
     if (days === 1) return t('yesterday');

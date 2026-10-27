@@ -12,6 +12,7 @@
   "include": [
     "src/**/*.ts",
     "test/**/*.ts",
+    "webview/src/**/*.ts",
     "vitest.config.mts",
     "scripts/check-release.mjs"
   ]

@@ -2,12 +2,12 @@
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import { mount } from '../media/view.js';
+import { mount } from '../webview/src/view';
 import { serializeLocalization } from '../src/i18n';
 import type { ViewState, WebviewMessage } from '../src/protocol';
 
 const clock = new Date(2026, 9, 27, 10, 0).getTime();
-const template = readFileSync(path.resolve('media/view.html'), 'utf8');
+const template = readFileSync(path.resolve('webview/src/view.html'), 'utf8');
 let dispose: () => void;
 const postMessage = vi.fn<(message: WebviewMessage) => void>();
 const setState = vi.fn();

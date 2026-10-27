@@ -1,5 +1,8 @@
-/** @param {string} locale @param {import('../src/i18n').Localize} t */
-export function createTooltip(locale, t) {
+import type { Localize } from '../../src/i18n';
+import type { Chat } from '../../src/model';
+
+/** Own the floating details element, its timers, and its window listeners. */
+export function createTooltip(locale: string, t: Localize) {
   const controller = new AbortController();
   const { signal } = controller;
   const tooltip = document.createElement('div');
@@ -8,12 +11,9 @@ export function createTooltip(locale, t) {
   tooltip.setAttribute('role', 'tooltip');
   tooltip.hidden = true;
   document.body.append(tooltip);
-  /** @type {HTMLButtonElement | undefined} */
-  let tooltipAnchor;
-  /** @type {ReturnType<typeof setTimeout> | undefined} */
-  let tooltipTimer;
-  /** @type {number | undefined} */
-  let tooltipFocusFrame;
+  let tooltipAnchor: HTMLButtonElement | undefined;
+  let tooltipTimer: ReturnType<typeof setTimeout> | undefined;
+  let tooltipFocusFrame: number | undefined;
   const hideTooltip = () => {
     clearTimeout(tooltipTimer);
     if (tooltipFocusFrame !== undefined) cancelAnimationFrame(tooltipFocusFrame);
@@ -22,14 +22,12 @@ export function createTooltip(locale, t) {
     tooltipAnchor?.removeAttribute('aria-describedby');
     tooltipAnchor = undefined;
   };
-  /** @param {HTMLButtonElement} button @param {import('../src/model').Chat} chat @param {string} cwd */
-  const showTooltip = (button, chat, cwd) => {
+  const showTooltip = (button: HTMLButtonElement, chat: Chat, cwd: string) => {
     hideTooltip();
     if (!button.isConnected || button.disabled) return;
     const fields = document.createElement('dl');
     fields.className = 'chat-tooltip-fields';
-    /** @param {string} label @param {string} value @param {string} className */
-    const addField = (label, value, className) => {
+    const addField = (label: string, value: string, className: string) => {
       const field = document.createElement('div');
       const term = document.createElement('dt');
       const description = document.createElement('dd');
@@ -79,8 +77,7 @@ export function createTooltip(locale, t) {
   window.addEventListener('resize', hideTooltip, { signal });
   window.addEventListener('blur', hideTooltip, { signal });
 
-  /** @param {HTMLButtonElement} button @param {import('../src/model').Chat} chat @param {string} cwd @param {AbortSignal} rowSignal */
-  const bind = (button, chat, cwd, rowSignal) => {
+  const bind = (button: HTMLButtonElement, chat: Chat, cwd: string, rowSignal: AbortSignal) => {
     button.addEventListener('pointerenter', () => {
       clearTimeout(tooltipTimer);
       tooltipTimer = setTimeout(() => showTooltip(button, chat, cwd), 350);

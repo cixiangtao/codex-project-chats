@@ -67,7 +67,7 @@ class ProjectChatsView implements vscode.WebviewViewProvider, vscode.Disposable 
     if (this.disposed) return;
     this.releaseView();
     this.view = view;
-    view.webview.options = { enableScripts: true, localResourceRoots: [vscode.Uri.joinPath(this.context.extensionUri, 'media')] };
+    view.webview.options = { enableScripts: true, localResourceRoots: [vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'webview')] };
     this.viewSubscriptions = [
       view.webview.onDidReceiveMessage((message: unknown) => {
         if (this.view === view) void this.handle(message);
@@ -77,10 +77,10 @@ class ProjectChatsView implements vscode.WebviewViewProvider, vscode.Disposable 
       }),
       view.onDidDispose(() => this.releaseView(view)),
     ];
-    const template = await readFile(path.join(this.context.extensionPath, 'media', 'view.html'), 'utf8');
+    const template = await readFile(path.join(this.context.extensionPath, 'dist', 'webview', 'view.html'), 'utf8');
     if (this.view !== view || this.disposed) return;
     const nonce = randomBytes(18).toString('base64url');
-    const asset = (name: string) => view.webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'media', name)).toString();
+    const asset = (name: string) => view.webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'webview', name)).toString();
     view.webview.html = template.replaceAll('{{CSP}}', view.webview.cspSource).replaceAll('{{NONCE}}', nonce)
       .replaceAll('{{LOCALIZATION}}', serializeLocalization(vscode.env.language))
       .replaceAll('{{STYLE}}', asset('view.css')).replaceAll('{{SCRIPT}}', asset('main.js'));
