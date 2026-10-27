@@ -44,7 +44,7 @@
     "format:check": "oxfmt --check webview package.json oxlint.config.mts .oxfmtrc.json vite.config.mts vitest.config.mts",
     "lint": "oxlint --max-warnings=0 webview",
     "lint:fix": "pnpm run lint --fix",
-    "package": "vsce package --no-dependencies",
+    "package": "node -e \"require('node:fs').mkdirSync('release-artifact', { recursive: true })\" && vsce package --no-dependencies --out release-artifact",
     "preview": "pnpm run build && node test/preview.mjs",
     "release:check": "node scripts/check-release.mjs",
     "release:dry": "release-it --dry-run",
