@@ -1,10 +1,11 @@
 import { sampleGroups } from './sample.mts';
 import type { ViewState } from '../../src/protocol';
+import type { WebviewApi } from '../src/host/types';
 
 // This entry belongs exclusively to local development and the standalone sample preview.
 const locale = document.documentElement.lang;
 const groups = sampleGroups(locale);
-let saved: ReturnType<ProjectChatsWebviewApi['getState']>;
+let saved: ReturnType<WebviewApi['getState']>;
 let state: ViewState = {
   type: 'state', scope: 'current', search: '', groups: [], busy: false, opening: null,
   error: '', hasMore: false, count: 0, hasWorkspace: true,

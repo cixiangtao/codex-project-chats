@@ -28,7 +28,7 @@ async function main() {
   if (!bridge) throw new Error('Could not build the sample bridge');
   const html = template.replace('<html lang="en">', `<html lang="${locale}">`)
     .replace('{{LOCALIZATION}}', () => serializeLocalization(language))
-    .replace(/<meta http-equiv="Content-Security-Policy"[^>]*>/, '')
+    .replace(/<meta\s+http-equiv="Content-Security-Policy"[^>]*>/, '')
     .replace('{{STYLES}}', () => `<style>${theme}\n${css}</style>`)
     .replace('<body>', `<body><aside class="preview-label">Codex Project Chats · ${locale === 'zh-CN' ? '界面预览 / 示例数据' : 'Preview / sample data'}</aside>`)
     .replace('<script type="module" nonce="{{NONCE}}" src="{{SCRIPT}}"></script>',

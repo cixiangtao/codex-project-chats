@@ -1,6 +1,5 @@
-interface ProjectChatsWebviewApi {
-  getState(): { collapsed?: string[]; expanded?: string[] } | undefined;
-  setState(state: { collapsed: string[]; expanded: string[] }): void;
-  postMessage(message: import('../../src/protocol').WebviewMessage): void;
+import type { WebviewApi } from './host/types';
+
+declare global {
+  function acquireVsCodeApi(): WebviewApi;
 }
-declare function acquireVsCodeApi(): ProjectChatsWebviewApi;

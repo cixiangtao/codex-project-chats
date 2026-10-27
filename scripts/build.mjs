@@ -14,4 +14,4 @@ execFileSync(process.execPath, [path.join(root, 'node_modules/typescript/bin/tsc
 // Build output must not inherit a developer shell's NODE_ENV=development.
 process.env.NODE_ENV = 'production';
 await build({ configFile: path.join(root, 'vite.config.mts') });
-await copyFile(path.join(root, 'webview/src/view.html'), path.join(root, 'dist/webview/view.html'));
+await copyFile(path.join(root, 'webview/src/app/view.html'), path.join(root, 'dist/webview/view.html'));

@@ -1,30 +1,63 @@
-// @vitest-environment jsdom
-import { afterEach, beforeEach, expect, test, vi } from 'vitest';
-import { act } from 'react';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import { mount } from '../webview/src/view';
-import { serializeLocalization } from '../src/i18n';
-import type { ViewState, WebviewMessage } from '../src/protocol';
+
+import { act } from 'react';
+// @vitest-environment jsdom
+import { afterEach, beforeEach, expect, test, vi } from 'vitest';
+
+import { serializeLocalization } from '../../../src/i18n';
+import type { ViewState, WebviewMessage } from '../../../src/protocol';
+import { mount } from './mount';
 
 const clock = new Date(2026, 9, 27, 10, 0).getTime();
-const template = readFileSync(path.resolve('webview/src/view.html'), 'utf8');
+const template = readFileSync(path.resolve('webview/src/app/view.html'), 'utf8');
 let dispose: () => void;
 const postMessage = vi.fn<(message: WebviewMessage) => void>();
 const setState = vi.fn();
 
 function state(overrides: Partial<ViewState> = {}): ViewState {
   return {
-    type: 'state', scope: 'current', search: '', busy: false, opening: null, error: '',
-    hasMore: false, hasWorkspace: true, count: 1,
-    groups: [{ key: '/fixture', cwd: '/fixture', name: 'fixture', current: true,
-      chats: [{ id: 'thread-0001', title: 'Sample conversation', cwd: '/fixture', updatedAt: clock / 1000 - 40 }] }],
+    type: 'state',
+    scope: 'current',
+    search: '',
+    busy: false,
+    opening: null,
+    error: '',
+    hasMore: false,
+    hasWorkspace: true,
+    count: 1,
+    groups: [
+      {
+        key: '/fixture',
+        cwd: '/fixture',
+        name: 'fixture',
+        current: true,
+        chats: [
+          {
+            id: 'thread-0001',
+            title: 'Sample conversation',
+            cwd: '/fixture',
+            updatedAt: clock / 1000 - 40,
+          },
+        ],
+      },
+    ],
     ...overrides,
   };
 }
-async function interact(action: () => void) { await act(async () => { action(); }); }
-async function receive(value: ViewState) { await interact(() => window.dispatchEvent(new MessageEvent('message', { data: value }))); }
-async function advance(ms: number) { await act(async () => { await vi.advanceTimersByTimeAsync(ms); }); }
+async function interact(action: () => void) {
+  await act(async () => {
+    action();
+  });
+}
+async function receive(value: ViewState) {
+  await interact(() => window.dispatchEvent(new MessageEvent('message', { data: value })));
+}
+async function advance(ms: number) {
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(ms);
+  });
+}
 function row() {
   const node = document.querySelector<HTMLButtonElement>('button.chat');
   if (!node) throw new Error('Expected a conversation row');
@@ -39,8 +72,13 @@ beforeEach(async () => {
   vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
   vi.spyOn(document, 'hidden', 'get').mockReturnValue(false);
   vi.stubGlobal('acquireVsCodeApi', () => ({ getState: () => undefined, setState, postMessage }));
-  document.body.innerHTML = template.replace('{{LOCALIZATION}}', serializeLocalization('en')).match(/<body>([\s\S]*)<\/body>/)?.[1] || '';
-  await interact(() => { dispose = mount(); });
+  document.body.innerHTML =
+    template
+      .replace('{{LOCALIZATION}}', serializeLocalization('en'))
+      .match(/<body>([\s\S]*)<\/body>/)?.[1] || '';
+  await interact(() => {
+    dispose = mount();
+  });
 });
 afterEach(async () => {
   await interact(dispose);
@@ -83,7 +121,8 @@ test('a refresh restores the matching row after results change without stealing 
 
 test('hover details preserve long titles as text and Escape dismisses them', async () => {
   const title = 'x'.repeat(220) + '<script>literal</script> END';
-  const value = state(); value.groups[0]!.chats[0]!.title = title;
+  const value = state();
+  value.groups[0]!.chats[0]!.title = title;
   await receive(value);
   await advance(0);
   await interact(() => row().dispatchEvent(new Event('pointerover', { bubbles: true })));
@@ -124,10 +163,18 @@ test('hidden views stop their clock and update immediately when visible again', 
 
 test('IME composition sends only committed search text', async () => {
   const search = document.querySelector<HTMLInputElement>('#search')!;
-  await interact(() => search.dispatchEvent(new CompositionEvent('compositionstart', { bubbles: true })));
-  await interact(() => { search.value = 'zhong'; search.dispatchEvent(new Event('input', { bubbles: true })); });
+  await interact(() =>
+    search.dispatchEvent(new CompositionEvent('compositionstart', { bubbles: true })),
+  );
+  await interact(() => {
+    search.value = 'zhong';
+    search.dispatchEvent(new Event('input', { bubbles: true }));
+  });
   expect(postMessage).toHaveBeenCalledOnce();
-  await interact(() => { search.value = '中文'; search.dispatchEvent(new CompositionEvent('compositionend', { bubbles: true })); });
+  await interact(() => {
+    search.value = '中文';
+    search.dispatchEvent(new CompositionEvent('compositionend', { bubbles: true }));
+  });
   expect(postMessage).toHaveBeenLastCalledWith({ type: 'search', value: '中文' });
 });
 
@@ -135,7 +182,9 @@ test('search expansion does not overwrite the saved project collapse state', asy
   await receive(state());
   await advance(0);
   const details = document.querySelector('details')!;
-  await interact(() => { details.open = false; });
+  await interact(() => {
+    details.open = false;
+  });
   await advance(0);
   expect(setState).toHaveBeenLastCalledWith({ collapsed: ['/fixture'], expanded: [] });
   await receive(state({ search: 'Sample' }));
@@ -156,11 +205,11 @@ test('unmount removes message listeners, hover details, and pending clock work',
   expect(vi.getTimerCount()).toBe(0);
 });
 
-
 test('replaced row listeners are released and cannot send stale navigation', async () => {
   await receive(state());
   const previous = row();
-  const updated = state(); updated.groups[0]!.chats[0]!.id = 'thread-0002';
+  const updated = state();
+  updated.groups[0]!.chats[0]!.id = 'thread-0002';
   await receive(updated);
   expect(previous.isConnected).toBe(false);
   await interact(() => previous.click());
@@ -171,7 +220,12 @@ test('replaced row listeners are released and cannot send stale navigation', asy
 
 test('stable conversation keys preserve the focused node when titles and ordering change', async () => {
   const value = state();
-  value.groups[0]!.chats.push({ id: 'thread-0002', title: 'Another conversation', cwd: '/fixture', updatedAt: clock / 1000 });
+  value.groups[0]!.chats.push({
+    id: 'thread-0002',
+    title: 'Another conversation',
+    cwd: '/fixture',
+    updatedAt: clock / 1000,
+  });
   await receive(value);
   const original = row();
   await interact(() => original.focus());
@@ -203,8 +257,13 @@ test('scope, pagination, and failure controls keep their host message contract',
 
 test('React controls and hover details use the injected Chinese catalog', async () => {
   await interact(dispose);
-  document.body.innerHTML = template.replace('{{LOCALIZATION}}', serializeLocalization('zh-CN')).match(/<body>([\s\S]*)<\/body>/)?.[1] || '';
-  await interact(() => { dispose = mount(); });
+  document.body.innerHTML =
+    template
+      .replace('{{LOCALIZATION}}', serializeLocalization('zh-CN'))
+      .match(/<body>([\s\S]*)<\/body>/)?.[1] || '';
+  await interact(() => {
+    dispose = mount();
+  });
   await receive(state());
   expect(document.documentElement.lang).toBe('zh-CN');
   expect(document.getElementById('current')?.textContent).toBe('当前项目');

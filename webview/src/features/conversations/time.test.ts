@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest';
-import { createTimeFormatter } from '../webview/src/time';
-import { createLocalizer } from '../src/i18n';
+
+import { createLocalizer } from '../../../../src/i18n';
+import { createTimeFormatter } from './time';
 
 const en = createTimeFormatter('en', createLocalizer('en'));
 const zh = createTimeFormatter('zh-CN', createLocalizer('zh-CN'));

@@ -1,0 +1,77 @@
+header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 12px 12px 0;
+  background: var(--vscode-sideBar-background);
+}
+.scope {
+  display: flex;
+  background: var(--vscode-input-background);
+  border: 1px solid var(--vscode-widget-border, transparent);
+  border-radius: 4px;
+  padding: 2px;
+  gap: 2px;
+}
+.scope button {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--vscode-descriptionForeground);
+  padding: 5px 2px;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+.scope button[aria-pressed='true'] {
+  background: var(--vscode-list-activeSelectionBackground);
+  color: var(--vscode-list-activeSelectionForeground);
+}
+.scope button:hover:not([aria-pressed='true']) {
+  background: var(--vscode-list-hoverBackground);
+  color: var(--vscode-foreground);
+}
+.search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+}
+.search svg {
+  position: absolute;
+  left: 7px;
+  color: var(--vscode-input-placeholderForeground);
+  pointer-events: none;
+}
+input {
+  width: 100%;
+  min-width: 0;
+  height: 28px;
+  padding: 3px 7px 3px 27px;
+  border: 1px solid var(--vscode-input-border, transparent);
+  border-radius: 2px;
+  background: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  caret-color: var(--vscode-input-foreground);
+}
+input::placeholder {
+  color: var(--vscode-input-placeholderForeground);
+}
+.summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 34px;
+  color: var(--vscode-descriptionForeground);
+  font-size: 11px;
+}
+.icon {
+  display: flex;
+  padding: 4px;
+  background: transparent;
+  border: 0;
+  border-radius: 3px;
+}
+.icon:hover {
+  background: var(--vscode-toolbar-hoverBackground);
+}

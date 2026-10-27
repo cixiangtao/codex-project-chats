@@ -1,6 +1,8 @@
 import { createRoot } from 'react-dom/client';
+
+import { LocalizationContext } from '../i18n/context';
+import { readStrings } from '../i18n/readStrings';
 import { App } from './App';
-import { LocalizationContext, readStrings } from './localization';
 
 /** Mount one React root and acquire the private VS Code bridge exactly once. */
 export function mount() {
@@ -11,6 +13,10 @@ export function mount() {
   document.documentElement.lang = strings.locale;
   document.title = strings.t('viewTitle');
   const root = createRoot(container);
-  root.render(<LocalizationContext.Provider value={strings}><App host={host}/></LocalizationContext.Provider>);
+  root.render(
+    <LocalizationContext.Provider value={strings}>
+      <App host={host} />
+    </LocalizationContext.Provider>,
+  );
   return () => root.unmount();
 }
