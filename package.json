@@ -3,7 +3,7 @@
   "displayName": "Codex Project Chats",
   "description": "Browse Codex conversations by project and continue in the official Codex sidebar.",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "publisher": "cixiangtao",
   "license": "MIT",
   "icon": "media/icon.png",
