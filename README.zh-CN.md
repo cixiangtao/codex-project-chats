@@ -4,7 +4,7 @@
 
 一个只做项目分类和跳转的 VS Code 扩展。打开项目，看到相关 Codex 对话，点一下回到官方 Codex。
 
-> 预览版本；目前仅对 macOS Apple Silicon 完成端到端验证。界面为中文。
+> 正式版本；目前仅对 macOS Apple Silicon 完成端到端验证。界面为中文。
 
 ## 使用
 
@@ -20,6 +20,18 @@
 
 每页加载 50 条，分类计数是当前已加载数量；用“加载更多对话”继续。目录筛选与标题搜索在服务端分页前执行，因此不会只搜索第一批对话。只展示未归档、交互式本地会话，不展示子代理和批处理会话。展开状态在视图恢复期间保留，范围选择按工作区保存。
 
+## 列表与悬停详情
+
+| 操作 | 使用方式 |
+| --- | --- |
+| 查找对话 | 选择当前项目或全部项目，再输入标题关键词。 |
+| 判断新旧 | 每行左侧为标题，右侧为**最后更新时间**，项目内按更新时间从新到旧排列。「昨天」「10/17」用于粗略筛选，不代表创建时间。 |
+| 查看完整信息 | 悬停对话，查看完整标题、精确到分钟的更新时间和项目路径。浮层靠右展示，左侧留出鼠标上下切换对话的通道。 |
+| 使用键盘 | 按 Tab 聚焦对话并查看详情，按 Enter 或空格打开，按 Esc 关闭提示。 |
+| 刷新与分页 | 点击刷新图标读取最新列表，点击「加载更多对话」继续读取下一页。项目计数表示当前已加载的匹配对话数。 |
+
+长标题在列表中省略，完整内容在浮层中换行；特别长的内容可在浮层内滚动。缺少更新时间的记录显示「时间未知」。
+
 ## 界面预览
 
 以下均为示例数据，不含真实会话。
@@ -27,6 +39,10 @@
 ![当前项目](https://raw.githubusercontent.com/cixiangtao/codex-project-chats/main/docs/images/current-project.png)
 
 ![全部项目](https://raw.githubusercontent.com/cixiangtao/codex-project-chats/main/docs/images/all-projects.png)
+
+悬停详情：完整信息靠右展示，左侧保留鼠标切换通道。
+
+![悬停详情与左侧鼠标通道](https://raw.githubusercontent.com/cixiangtao/codex-project-chats/main/docs/images/hover-details.png)
 
 ## 边界与兼容
 
@@ -38,7 +54,7 @@
 - 运行在 workspace extension host。WSL、SSH 和容器需要在相应远程窗口安装本扩展与官方 Codex；跨主机历史不合并。本地 Windows 窗口把 Codex 重定向到 WSL 的混合模式不支持，请打开 WSL 窗口。
 - 首版已针对 macOS Apple Silicon 验证；其他平台路径经过代码处理，未承诺完成端到端验证。
 - 官方内置可执行文件布局若变化，可在用户设置中指定 `codexProjectChats.cliPath` 的绝对路径。
-- 本扩展是独立的第三方项目，并非 OpenAI 官方产品。预览版已验证 macOS Apple Silicon，欢迎在确认兼容后使用。
+- 本扩展是独立的第三方项目，并非 OpenAI 官方产品。已验证 macOS Apple Silicon，欢迎在确认兼容后使用。
 
 ## 从原型迁移
 
@@ -50,9 +66,9 @@
 - 安全漏洞请使用[私密安全报告](https://github.com/cixiangtao/codex-project-chats/security/advisories/new)，不要公开会话记录或凭据。
 - 参与开发请参阅 [CONTRIBUTING.md](https://github.com/cixiangtao/codex-project-chats/blob/main/CONTRIBUTING.md)。采用 [MIT 许可](https://github.com/cixiangtao/codex-project-chats/blob/main/LICENSE)。
 
-## 自动发布
+## 发布方式
 
-[发布工作流](https://github.com/cixiangtao/codex-project-chats/blob/main/docs/releasing.md)负责生成版本 PR，并且只在该版本 PR 通过 CI 且合并后上传 Marketplace。当前需先配置专用 GitHub App 和微软 Entra 身份，完成前保持停用。不会创建 GitHub Release，也不会发布 npm 包。
+当前通过 CI 后打包 VSIX，并在 Marketplace 发布者后台手动上传。[发布说明](https://github.com/cixiangtao/codex-project-chats/blob/main/docs/releasing.md)包含手动发布步骤及后续自动化启用流程。自动发布因微软 Entra 发布身份尚未配置而保持停用。不会创建 GitHub Release，也不会发布 npm 包。
 
 ## 开发
 
@@ -72,3 +88,5 @@ npm run package
 - [VS Code Webview View](https://code.visualstudio.com/api/extension-guides/webview)
 
 独立实现；没有复制 History Viewer 的代码。
+
+自定义图标在官方 Codex 扩展使用的 OpenAI 花结标识上加入项目文件夹角标。OpenAI、Codex 及相关标识归 OpenAI 所有，该图标不代表官方关联或背书。

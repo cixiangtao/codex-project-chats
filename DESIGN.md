@@ -5,8 +5,9 @@ The UI uses a native VS Code Webview View, not a separate website.
 - A current/all-project control and title search stay visible at the top.
 - Exact working directories define groups. Identical folder names include paths; narrow layouts retain path suffixes and expose full paths on hover.
 - The current project expands initially. Other projects collapse initially. Search temporarily expands matching groups without overwriting the saved collapse state.
-- Conversation rows show a title and last-update time. Selecting a row reveals the existing official Codex view, respecting its placement and avoiding editor tabs.
+- Conversation rows use a compact single line (32px minimum height), with an ellipsized title on the left and a short last-update time aligned right. Repeated conversation icons are omitted to preserve title width; hovering reveals the full title, path, and exact timestamp. Selecting a row shows a short opening status and reveals the existing official Codex view, respecting its placement and avoiding editor tabs.
 - Colors, fonts, focus, selection, and scrolling use VS Code theme variables. No remote fonts or images are loaded by the webview.
+- Conversation hover details use a compact theme-aware tooltip (up to 280px wide and 180px tall), with a full title and inline labels for last-update time and project path. It aligns to the right with a 12px inset and reserves at least 64px on the left for moving the pointer between rows. It prefers placement above the row, falls back below when needed, and scrolls within the available space without covering its anchor. Long content wraps within the viewport; keyboard focus also reveals details, Escape dismisses them, and scrolling or refreshing closes stale details.
 - Loading, missing workspace, empty history, unmatched search, interface failure, and pagination have explicit states.
 - Pagination reads 50 records at a time. Counts represent loaded conversations.
 

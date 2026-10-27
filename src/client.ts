@@ -47,7 +47,7 @@ export class CodexClient {
           this.fail(new Error('Codex 列表服务已退出，请刷新重试。'));
         }
       });
-      await this.request('initialize', { clientInfo: { name: 'codex_project_chats', title: 'Codex Project Chats', version: '0.1.1' } }); // x-release-please-version
+      await this.request('initialize', { clientInfo: { name: 'codex_project_chats', title: 'Codex Project Chats', version: '1.0.0' } }); // x-release-please-version
       child.stdin.write(JSON.stringify({ method: 'initialized', params: {} }) + '\n');
     })();
     try { await this.starting; } catch (error) { this.dispose(); throw error; }
