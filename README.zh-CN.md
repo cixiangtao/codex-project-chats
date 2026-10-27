@@ -79,11 +79,13 @@
 ```sh
 pnpm install --frozen-lockfile
 pnpm run check
+pnpm run lint
+pnpm run format:check
 pnpm test
 pnpm run package
 ```
 
-Vitest 直接运行 TypeScript 源码测试，`pnpm run check` 同时检查扩展源码、测试和 Webview 的类型。开发时可使用 `pnpm run test:watch`。扩展宿主代码编译为 CommonJS，输出到 `dist/extension/`；`webview/src/` 中的 React + TypeScript 界面代码通过 Vite 构建到 `dist/webview/`。`media/` 仅保留图标资源。React 与 React DOM 已合并进浏览器构建产物，VSIX 仅包含构建代码、媒体资源和公开文档，不携带 `node_modules/`。
+Vitest 直接运行 TypeScript 源码测试，`pnpm run check` 同时检查扩展源码、测试和 Webview 的类型。开发时可使用 `pnpm run test:watch`。扩展宿主代码编译为 CommonJS，输出到 `dist/extension/`；`webview/src/` 中的 React + TypeScript 界面代码通过 Vite 构建到 `dist/webview/`。`media/` 仅保留图标资源。前端按应用入口、宿主通信、控件和对话功能组织，组件、Hook、功能样式与测试就近维护；详见 [Webview 开发说明](https://github.com/cixiangtao/codex-project-chats/blob/main/webview/README.md)。CI 同时检查 Oxlint 与 Oxfmt。React 与 React DOM 已合并进浏览器构建产物，VSIX 仅包含构建代码、媒体资源和公开文档，不携带 `node_modules/`。
 
 运行 `pnpm dev` 可在 `http://127.0.0.1:5173/` 查看带 React 热更新的示例界面，追加 `?lang=en` 切换英文。预览使用示例数据；实际安装的扩展加载 VSIX 内的构建产物。
 

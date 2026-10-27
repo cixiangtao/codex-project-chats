@@ -9,17 +9,21 @@ Use Node.js 24.18.0 (`.nvmrc`) and pnpm 12.15.0 (`packageManager`). From the rep
 ```sh
 pnpm install --frozen-lockfile
 pnpm run check
+pnpm run lint
+pnpm run format:check
 pnpm test
 pnpm run package
 ```
 
 With nvm, run `nvm install` and `nvm use` to select the development runtime. Corepack users can run `corepack pnpm` in place of `pnpm`. If your global pnpm is older, `npx --yes pnpm@12.15.0 <command>` runs the pinned version without changing the global installation. Build-script permissions and dependency overrides are declared in `pnpm-workspace.yaml`.
 
-`pnpm run check` type-checks the extension, tests, and React Webview TypeScript/TSX. Vitest runs `.test.ts` files directly against the source, using a module mock for the VS Code API. Controller tests cover disposal and stale requests; jsdom tests use React `act` and exercise focus, tooltip content, IME search, collapse state, and visibility-aware time labels. DOM simulation does not verify browser layout or the real VS Code host. Use `pnpm run test:watch` for watch mode. The extension host compiles to CommonJS in `dist/extension/`. Vite builds `webview/src/main.ts` and its imported CSS into hashed assets under `dist/webview/`; the host resolves their names from `manifest.json`. React and React DOM are included in those assets. `pnpm run build` cleans `dist/` first, so old output cannot leak into a package. Vite transforms and bundles; `pnpm run check` remains the type-checking gate.
+`pnpm run check` type-checks the extension, tests, and React Webview TypeScript/TSX. Vitest runs `.test.ts` and `.test.tsx` files directly against the source, using a module mock for the VS Code API. Controller tests cover disposal and stale requests; jsdom tests use React `act` and exercise focus, tooltip content, IME search, collapse state, and visibility-aware time labels. DOM simulation does not verify browser layout or the real VS Code host. Use `pnpm run test:watch` for watch mode. The extension host compiles to CommonJS in `dist/extension/`. Vite builds `webview/src/main.ts` and its imported CSS into hashed assets under `dist/webview/`; the host resolves their names from `manifest.json`. React and React DOM are included in those assets. `pnpm run build` cleans `dist/` first, so old output cannot leak into a package. Vite transforms and bundles; `pnpm run check` remains the type-checking gate.
 
 Tests use generated local fixtures. They do not require a Codex login or read your real history. A POSIX executable fixture is skipped on Windows. CI builds and packages the extension but does not claim end-to-end compatibility with the official extension.
 
 The source directories are `src/` for the extension host, `webview/src/` for the interface, and `media/` for icons. The two source directories target separate runtimes: `src/` can call VS Code and Node APIs, while `webview/src/` runs in the browser and communicates through messages. VS Code loads the compiled `main` entry in `package.json`, not every source file as a public API. `webview/src/vscode.d.ts` declares the browser bridge, and the UI imports shared message/localization types from `src/` using type-only imports. Edit these source files, not generated `dist/` files.
+
+The Webview uses `app/` for composition and mounting, `host/` for the typed bridge, `components/` for header/status controls, `features/conversations/` for list behavior, `i18n/` for localization, and `styles/` for global theme/reset rules. Feature styles and tests live alongside the feature. See [webview/README.md](webview/README.md) for the layout and frontend checks. `pnpm run lint` checks the Webview with Oxlint, including Hooks dependencies, Fast Refresh exports, and host/browser import boundaries. `pnpm run format:check` checks its formatting; use `pnpm run lint:fix` and `pnpm run format` locally. CI requires both checks.
 
 Run `pnpm dev` for the Vite browser preview at `http://127.0.0.1:5173/` (Simplified Chinese), or append `?lang=en`. React Fast Refresh and CSS hot updates are enabled. `webview/dev/` supplies synthetic metadata, a mock bridge, and VS Code-like theme variables; it is excluded from the production entry. The dev preview does not connect to the real app-server.
 

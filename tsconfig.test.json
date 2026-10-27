@@ -18,6 +18,7 @@
     "webview/src/**/*.tsx",
     "vitest.config.mts",
     "vite.config.mts",
+    "oxlint.config.mts",
     "scripts/check-release.mjs"
   ]
 }

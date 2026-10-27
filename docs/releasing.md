@@ -30,6 +30,8 @@ Before preparing another version, resolve any pending Marketplace upload and ver
 
    ```sh
    pnpm run check
+   pnpm run lint
+   pnpm run format:check
    pnpm test
    pnpm run release:check
    python3 -m unittest discover -s test -p '*_test.py'

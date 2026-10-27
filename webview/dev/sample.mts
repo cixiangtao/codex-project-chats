@@ -5,7 +5,8 @@ export function sampleGroups(locale: string): ProjectGroup[] {
   const root = '/projects/codex-project-chats';
   const now = Math.floor(Date.now() / 1000);
   const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1); yesterday.setHours(12, 0, 0, 0);
+  yesterday.setDate(yesterday.getDate() - 1);
+  yesterday.setHours(12, 0, 0, 0);
   const englishTitles: Record<string, string> = {
     'thread-0001': 'Refine compact rows and conversation details',
     'thread-0002': 'Fix sidebar search and pagination',
@@ -25,7 +26,12 @@ export function sampleGroups(locale: string): ProjectGroup[] {
     ['thread-0003', root, '检查官方 Codex 跳转入口与侧栏位置兼容性', now - 7200],
     ['thread-0009', root, '整理扩展的安装与使用说明', Math.floor(yesterday.getTime() / 1000)],
     ['thread-0010', root, '排查多根工作区的目录匹配', now - 864000],
-    ['thread-0011', root, '整理上一年度的兼容性记录', Math.floor(new Date(new Date().getFullYear() - 1, 11, 18).getTime() / 1000)],
+    [
+      'thread-0011',
+      root,
+      '整理上一年度的兼容性记录',
+      Math.floor(new Date(new Date().getFullYear() - 1, 11, 18).getTime() / 1000),
+    ],
     ['thread-0004', '/projects/website', '调整首页导航', now - 10000],
     ['thread-0005', '/projects/website', '优化移动端布局', now - 20000],
     ['thread-0006', '/projects/api-service', '排查登录接口', now - 40000],
@@ -36,10 +42,21 @@ export function sampleGroups(locale: string): ProjectGroup[] {
   for (const [id, cwd, title, updatedAt] of chats) {
     let group = groups.get(cwd);
     if (!group) {
-      group = { key: cwd, cwd, name: cwd.split('/').at(-1) || cwd, current: cwd === root, chats: [] };
+      group = {
+        key: cwd,
+        cwd,
+        name: cwd.split('/').at(-1) || cwd,
+        current: cwd === root,
+        chats: [],
+      };
       groups.set(cwd, group);
     }
-    group.chats.push({ id, cwd, title: locale === 'en' ? englishTitles[id] || title : title, updatedAt });
+    group.chats.push({
+      id,
+      cwd,
+      title: locale === 'en' ? englishTitles[id] || title : title,
+      updatedAt,
+    });
   }
   return [...groups.values()];
 }
