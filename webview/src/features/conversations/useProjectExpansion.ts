@@ -1,14 +1,24 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import type { ProjectGroup, Scope } from '../../../../src/model';
-import type { WebviewApi } from '../../host/types';
+import type { ExpansionState, WebviewApi } from '../../host/types';
+
+/** Recover usable preferences even when stored state predates the current schema. */
+function readExpansionState(value: unknown): ExpansionState {
+  const record = value && typeof value === 'object' ? value : {};
+  const strings = (list: unknown): string[] =>
+    Array.isArray(list)
+      ? [...new Set(list.filter((item): item is string => typeof item === 'string'))]
+      : [];
+  return {
+    collapsed: strings('collapsed' in record ? record.collapsed : undefined),
+    expanded: strings('expanded' in record ? record.expanded : undefined),
+  };
+}
 
 /** Search expands results temporarily without replacing the user's saved preferences. */
 export function useProjectExpansion(host: WebviewApi) {
-  const [preferences, setPreferences] = useState(() => {
-    const previous = host.getState();
-    return { collapsed: previous?.collapsed ?? [], expanded: previous?.expanded ?? [] };
-  });
+  const [preferences, setPreferences] = useState(() => readExpansionState(host.getState()));
   useEffect(() => {
     host.setState(preferences);
   }, [preferences, host]);

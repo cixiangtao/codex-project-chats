@@ -10,7 +10,8 @@ export type SendMessage = (message: WebviewMessage) => void;
 
 /** The private browser bridge is acquired once at mount and passed explicitly to the app. */
 export interface WebviewApi {
-  getState(): { collapsed?: string[]; expanded?: string[] } | undefined;
+  /** Stored state can come from an older version and must be checked before use. */
+  getState(): unknown;
   setState(state: ExpansionState): void;
   postMessage: SendMessage;
 }

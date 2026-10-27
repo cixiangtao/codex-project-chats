@@ -14,6 +14,7 @@ const template = readFileSync(path.resolve('webview/src/app/view.html'), 'utf8')
 let dispose: () => void;
 const postMessage = vi.fn<(message: WebviewMessage) => void>();
 const setState = vi.fn();
+const getState = vi.fn<() => unknown>();
 
 function state(overrides: Partial<ViewState> = {}): ViewState {
   return {
@@ -69,9 +70,10 @@ beforeEach(async () => {
   vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
   vi.setSystemTime(clock);
   vi.clearAllMocks();
+  getState.mockReturnValue(undefined);
   vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
   vi.spyOn(document, 'hidden', 'get').mockReturnValue(false);
-  vi.stubGlobal('acquireVsCodeApi', () => ({ getState: () => undefined, setState, postMessage }));
+  vi.stubGlobal('acquireVsCodeApi', () => ({ getState, setState, postMessage }));
   document.body.innerHTML =
     template
       .replace('{{LOCALIZATION}}', serializeLocalization('en'))
@@ -192,6 +194,29 @@ test('search expansion does not overwrite the saved project collapse state', asy
   await advance(0);
   await receive(state());
   expect(document.querySelector('details')?.open).toBe(false);
+});
+
+test('legacy saved preferences cannot prevent the list from rendering', async () => {
+  await interact(dispose);
+  getState.mockReturnValue({ collapsed: '/fixture', expanded: null });
+  await interact(() => {
+    dispose = mount();
+  });
+  await receive(state());
+  expect(document.querySelector('details')?.open).toBe(true);
+  expect(row().textContent).toContain('Sample conversation');
+  expect(setState).toHaveBeenLastCalledWith({ collapsed: [], expanded: [] });
+});
+
+test('recreated views restore valid saved project preferences and discard invalid entries', async () => {
+  await interact(dispose);
+  getState.mockReturnValue({ collapsed: ['/fixture', null, '/fixture'], expanded: [42, '/other'] });
+  await interact(() => {
+    dispose = mount();
+  });
+  await receive(state());
+  expect(document.querySelector('details')?.open).toBe(false);
+  expect(setState).toHaveBeenLastCalledWith({ collapsed: ['/fixture'], expanded: ['/other'] });
 });
 
 test('unmount removes message listeners, hover details, and pending clock work', async () => {
