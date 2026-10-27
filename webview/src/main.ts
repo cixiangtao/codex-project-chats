@@ -1,3 +1,4 @@
+import './view.css';
 import { mount } from './view.js';
 
 const dispose = mount();

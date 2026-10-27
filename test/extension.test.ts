@@ -6,7 +6,7 @@ const mocks = vi.hoisted(() => ({
   list: vi.fn<(roots: string[] | undefined, search: string, cursor: string | null) => Promise<ChatPage>>(),
   dispose: vi.fn(), construct: vi.fn(),
   register: vi.fn<(id: string, provider: vscode.WebviewViewProvider) => vscode.Disposable>(),
-  readFile: vi.fn<() => Promise<string>>(),
+  readFile: vi.fn<(file: string) => Promise<string>>(),
 }));
 vi.mock('../src/client', () => ({ CodexClient: class {
   constructor(...args: unknown[]) { mocks.construct(...args); }
@@ -67,7 +67,9 @@ beforeEach(() => {
   vi.useFakeTimers();
   vi.clearAllMocks();
   mocks.list.mockReset().mockResolvedValue(page('thread-default'));
-  mocks.readFile.mockReset().mockResolvedValue('<html>{{LOCALIZATION}}</html>');
+  mocks.readFile.mockReset().mockImplementation(async file => file.endsWith('manifest.json')
+    ? JSON.stringify({ 'src/main.ts': { isEntry: true, file: 'assets/main.js', css: ['assets/style.css'] } })
+    : '<html>{{LOCALIZATION}}</html>');
   mocks.register.mockReturnValue({ dispose() {} });
 });
 afterEach(() => {
@@ -137,6 +139,19 @@ test('disposal while the HTML template is loading leaves the closed webview unto
   await vi.advanceTimersByTimeAsync(0);
   disposables[0]?.dispose();
   template.resolve('<html>late</html>');
+  const fixture = await pending;
+  expect(fixture.view.webview.html).toBeUndefined();
+  expect(mocks.construct).not.toHaveBeenCalled();
+});
+
+test('disposal while the Vite manifest is loading leaves the closed view untouched', async () => {
+  const manifest = Promise.withResolvers<string>();
+  mocks.readFile.mockImplementation(file => file.endsWith('manifest.json')
+    ? manifest.promise : Promise.resolve('<html>{{LOCALIZATION}}</html>'));
+  const pending = setup();
+  await vi.advanceTimersByTimeAsync(0);
+  disposables[0]?.dispose();
+  manifest.resolve(JSON.stringify({ entry: { isEntry: true, file: 'main.js', css: ['style.css'] } }));
   const fixture = await pending;
   expect(fixture.view.webview.html).toBeUndefined();
   expect(mocks.construct).not.toHaveBeenCalled();

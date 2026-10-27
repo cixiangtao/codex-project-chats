@@ -86,7 +86,9 @@ pnpm test
 pnpm run package
 ```
 
-Vitest runs TypeScript tests directly against the source; `pnpm run check` checks extension, test, and Webview types. Use `pnpm run test:watch` while developing. The extension host compiles to CommonJS in `dist/extension/`; the React and TypeScript interface in `webview/src/` is bundled with esbuild into `dist/webview/`. `media/` contains icons.
+Vitest runs TypeScript tests directly against the source; `pnpm run check` checks extension, test, and Webview types. Use `pnpm run test:watch` while developing. The extension host compiles to CommonJS in `dist/extension/`; the React and TypeScript interface in `webview/src/` is built with Vite into `dist/webview/`. `media/` contains icons.
+
+Run `pnpm dev` for the local interface preview with React Fast Refresh at `http://127.0.0.1:5173/`. It uses synthetic data; append `?lang=en` for English. The installed extension loads the packaged Vite assets through the VS Code Webview API.
 
 The VSIX is generated in the repository root. React and React DOM are bundled into the browser entry; only built code, local media, and public documentation are packaged, with no `node_modules/` directory. This is a VS Code extension, not an npm library (`private: true` prevents accidental npm publication).
 

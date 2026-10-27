@@ -7,6 +7,7 @@ import { CodexClient } from './client';
 import { openInCodex } from './routing';
 import { groupChats, uniquePaths, type Chat, type Scope } from './model';
 import { parseWebviewMessage, type ViewState } from './protocol';
+import { loadWebviewAssets } from './webview-assets';
 
 const t = createLocalizer(vscode.env.language);
 const VIEW_ID = 'codexProjectChats.list';
@@ -79,11 +80,14 @@ class ProjectChatsView implements vscode.WebviewViewProvider, vscode.Disposable 
     ];
     const template = await readFile(path.join(this.context.extensionPath, 'dist', 'webview', 'view.html'), 'utf8');
     if (this.view !== view || this.disposed) return;
+    const assets = await loadWebviewAssets(path.join(this.context.extensionPath, 'dist', 'webview'));
+    if (this.view !== view || this.disposed) return;
     const nonce = randomBytes(18).toString('base64url');
     const asset = (name: string) => view.webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'webview', name)).toString();
     view.webview.html = template.replaceAll('{{CSP}}', view.webview.cspSource).replaceAll('{{NONCE}}', nonce)
       .replaceAll('{{LOCALIZATION}}', serializeLocalization(vscode.env.language))
-      .replaceAll('{{STYLE}}', asset('view.css')).replaceAll('{{SCRIPT}}', asset('main.js'));
+      .replaceAll('{{STYLES}}', () => assets.styles.map(file => `<link rel="stylesheet" href="${asset(file)}">`).join(''))
+      .replaceAll('{{SCRIPT}}', () => asset(assets.script));
   }
 
   /** A view owns its subscriptions, debounce work, and list-service connection. */

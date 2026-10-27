@@ -10,10 +10,13 @@
       "DOM.Iterable"
     ],
     "rootDir": ".",
-    "noEmit": true
+    "noEmit": true,
+    "allowImportingTsExtensions": true
   },
   "include": [
     "webview/src/**/*.ts",
-    "webview/src/**/*.tsx"
+    "webview/src/**/*.tsx",
+    "webview/dev/**/*.ts",
+    "webview/dev/**/*.mts"
   ]
 }

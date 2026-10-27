@@ -13,10 +13,16 @@ with ZipFile(archive) as package:
         assert packed[field] == manifest[field], f"Manifest mismatch: {field}"
     for name in ("extension/readme.md", "extension/changelog.md", "extension/LICENSE.txt",
                  "extension/README.zh-CN.md", "extension/SUPPORT.md", "extension/media/icon.png",
-                 "extension/dist/webview/view.html", "extension/dist/webview/view.css", "extension/dist/webview/main.js",
+                 "extension/dist/webview/view.html", "extension/dist/webview/manifest.json",
                  "extension/dist/extension/extension.js",
                  "extension/package.nls.json", "extension/package.nls.zh.json", "extension/package.nls.zh-cn.json"):
         assert name in names, f"Missing public asset: {name}"
+    assets = json.loads(package.read("extension/dist/webview/manifest.json"))
+    entries = [item for item in assets.values() if item.get("isEntry")]
+    assert len(entries) == 1 and entries[0].get("css"), "Missing Webview entry/styles"
+    for item in assets.values():
+        for asset in [item["file"], *item.get("css", [])]:
+            assert "extension/dist/webview/" + asset in names, f"Missing built asset: {asset}"
     allowed = ("extension/dist/extension/", "extension/dist/webview/", "extension/media/")
     docs = {"extension/package.json", "extension/readme.md", "extension/changelog.md",
             "extension/LICENSE.txt", "extension/README.zh-CN.md", "extension/SUPPORT.md",
