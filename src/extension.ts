@@ -41,6 +41,7 @@ async function workspaceRoots(): Promise<string[]> {
 
 class ProjectChatsView implements vscode.WebviewViewProvider, vscode.Disposable {
   private view?: vscode.WebviewView;
+  private viewSubscriptions: vscode.Disposable[] = [];
   private client?: CodexClient;
   private binary?: string;
   private scope: Scope;
@@ -62,29 +63,50 @@ class ProjectChatsView implements vscode.WebviewViewProvider, vscode.Disposable 
   }
 
   async resolveWebviewView(view: vscode.WebviewView): Promise<void> {
+    if (this.disposed) return;
+    this.releaseView();
     this.view = view;
     view.webview.options = { enableScripts: true, localResourceRoots: [vscode.Uri.joinPath(this.context.extensionUri, 'media')] };
+    this.viewSubscriptions = [
+      view.webview.onDidReceiveMessage((message: unknown) => {
+        if (this.view === view) void this.handle(message);
+      }),
+      view.onDidChangeVisibility(() => {
+        if (this.view === view && view.visible && this.ready && Date.now() - (this.lastRefresh ?? 0) > 30_000) void this.refresh();
+      }),
+      view.onDidDispose(() => this.releaseView(view)),
+    ];
     const template = await readFile(path.join(this.context.extensionPath, 'media', 'view.html'), 'utf8');
+    if (this.view !== view || this.disposed) return;
     const nonce = randomBytes(18).toString('base64url');
     const asset = (name: string) => view.webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'media', name)).toString();
     view.webview.html = template.replaceAll('{{CSP}}', view.webview.cspSource).replaceAll('{{NONCE}}', nonce)
       .replaceAll('{{LOCALIZATION}}', serializeLocalization(vscode.env.language))
       .replaceAll('{{STYLE}}', asset('view.css')).replaceAll('{{SCRIPT}}', asset('view.js'));
-    const subscriptions = [view.webview.onDidReceiveMessage((message: unknown) => { void this.handle(message); }),
-      view.onDidChangeVisibility(() => {
-        if (view.visible && this.ready && Date.now() - (this.lastRefresh ?? 0) > 30_000) void this.refresh();
-      })];
-    view.onDidDispose(() => {
-      for (const subscription of subscriptions) subscription.dispose();
-      this.ready = false;
-      if (this.view === view) this.view = undefined;
-      this.generation++;
-      this.client?.dispose(); this.client = undefined;
-    });
+  }
+
+  /** A view owns its subscriptions, debounce work, and list-service connection. */
+  private releaseView(view = this.view): void {
+    if (view !== this.view) return;
+    this.view = undefined;
+    this.ready = false;
+    this.generation++;
+    clearTimeout(this.timer);
+    this.timer = undefined;
+    this.busy = false;
+    this.client?.dispose();
+    this.client = undefined;
+    this.binary = undefined;
+    for (const subscription of this.viewSubscriptions.splice(0)) subscription.dispose();
+  }
+
+  private isCurrent(generation: number): boolean {
+    return generation === this.generation && !this.disposed && this.ready && this.view !== undefined;
   }
 
   private async handle(message: unknown): Promise<void> {
-    if (!isRecord(message)) return;
+    if (this.disposed || !this.view || !isRecord(message)) return;
+    if (message.type !== 'ready' && !this.ready) return;
     switch (message.type) {
       case 'ready': this.ready = true; await this.refresh(); break;
       case 'refresh': await this.refresh(); break;
@@ -109,34 +131,35 @@ class ProjectChatsView implements vscode.WebviewViewProvider, vscode.Disposable 
 
   async refresh(): Promise<void> {
     clearTimeout(this.timer);
-    await this.load(false);
+    if (!this.disposed && this.view && this.ready) await this.load(false);
   }
 
   private async load(append: boolean): Promise<void> {
+    if (this.disposed || !this.view || !this.ready) return;
     const generation = ++this.generation;
     this.busy = true; this.error = '';
     if (!append) { this.chats = []; this.cursor = null; }
     this.send();
     try {
       const roots = await workspaceRoots();
-      if (generation !== this.generation || this.disposed) return;
+      if (!this.isCurrent(generation)) return;
       this.roots = roots;
       if (this.scope === 'current' && !roots.length) { this.lastRefresh = Date.now(); return; }
       const binary = await getBinary();
-      if (generation !== this.generation || this.disposed) return;
+      if (!this.isCurrent(generation)) return;
       if (!this.client || binary !== this.binary) { this.client?.dispose(); this.client = new CodexClient(binary, this.context.extension.packageJSON.version, vscode.env.language); this.binary = binary; }
       const page = await this.client.list(this.scope === 'current' ? roots : undefined, this.search, append ? this.cursor : null);
-      if (generation !== this.generation || this.disposed) return;
+      if (!this.isCurrent(generation)) return;
       this.chats = [...new Map([...this.chats, ...page.chats].map(chat => [chat.id, chat])).values()];
       this.cursor = page.nextCursor;
       this.lastRefresh = Date.now();
     } catch (error) {
-      if (generation === this.generation && !this.disposed) {
+      if (this.isCurrent(generation)) {
         this.error = error instanceof Error ? error.message : t('errorReadFailed');
         this.client?.dispose(); this.client = undefined;
       }
     } finally {
-      if (generation === this.generation && !this.disposed) { this.busy = false; this.send(); }
+      if (this.isCurrent(generation)) { this.busy = false; this.send(); }
     }
   }
 
@@ -163,9 +186,8 @@ class ProjectChatsView implements vscode.WebviewViewProvider, vscode.Disposable 
   snapshot() { return { ready: this.ready, busy: this.busy, count: this.chats.length, error: this.error, scope: this.scope }; }
 
   dispose(): void {
-    this.disposed = true; this.generation++;
-    clearTimeout(this.timer);
-    this.client?.dispose();
+    this.disposed = true;
+    this.releaseView();
   }
 }
 
