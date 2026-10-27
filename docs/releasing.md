@@ -42,7 +42,7 @@ The sections below describe the prepared workflow, not the current manual upload
 4. `.github/workflows/release.yml` verifies the PR author, branch, merge commit, successful CI, protected-branch ancestry, and allowed metadata-only diff. It rebuilds and inspects one VSIX and records its commit/PR identity and checksum.
 5. The `marketplace` environment job downloads that same artifact, obtains a short-lived Microsoft Entra token, uploads through `vsce`, and reconciles the public Marketplace payload before tagging the commit. No browser upload or CAPTCHA is part of this pipeline.
 
-The manifest's `preview: true` describes Marketplace maturity. Both release paths use ordinary numeric VS Code versions and do not switch to the separate Marketplace pre-release channel. After public payload verification, the automated path creates the tag and lifecycle labels itself.
+The manifest's `preview: false` marks the extension as a stable product. Both release paths use ordinary numeric VS Code versions on the regular Marketplace channel. After public payload verification, the automated path creates the tag and lifecycle labels itself.
 
 ## One-time GitHub App setup
 

@@ -1,7 +1,8 @@
 # Changelog
 
-## 0.1.2
+## 1.0.0
 
+- Publish the first stable release and remove the Marketplace preview designation.
 - Use compact single-line conversation rows with right-aligned last-update times.
 - Show full titles, update timestamps, and project paths in compact hover details, keeping a clear pointer lane on the left for switching conversations.
 - Support keyboard focus and Escape dismissal for conversation details.

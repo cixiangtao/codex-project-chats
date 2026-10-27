@@ -4,7 +4,7 @@
 
 一个只做项目分类和跳转的 VS Code 扩展。打开项目，看到相关 Codex 对话，点一下回到官方 Codex。
 
-> 预览版本；目前仅对 macOS Apple Silicon 完成端到端验证。界面为中文。
+> 正式版本；目前仅对 macOS Apple Silicon 完成端到端验证。界面为中文。
 
 ## 使用
 
@@ -54,7 +54,7 @@
 - 运行在 workspace extension host。WSL、SSH 和容器需要在相应远程窗口安装本扩展与官方 Codex；跨主机历史不合并。本地 Windows 窗口把 Codex 重定向到 WSL 的混合模式不支持，请打开 WSL 窗口。
 - 首版已针对 macOS Apple Silicon 验证；其他平台路径经过代码处理，未承诺完成端到端验证。
 - 官方内置可执行文件布局若变化，可在用户设置中指定 `codexProjectChats.cliPath` 的绝对路径。
-- 本扩展是独立的第三方项目，并非 OpenAI 官方产品。预览版已验证 macOS Apple Silicon，欢迎在确认兼容后使用。
+- 本扩展是独立的第三方项目，并非 OpenAI 官方产品。已验证 macOS Apple Silicon，欢迎在确认兼容后使用。
 
 ## 从原型迁移
 

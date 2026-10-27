@@ -6,7 +6,7 @@ Browse Codex conversations by project, then continue in the official Codex sideb
 
 A small VS Code extension for developers who work across several repositories. It groups existing conversations by their working directory (`cwd`), without patching the official extension or implementing another chat client.
 
-> **Preview:** end-to-end verified on macOS Apple Silicon. Other platforms are not yet verified end to end. The extension interface is currently in Simplified Chinese. This is an independent project, not an OpenAI product.
+> **Compatibility:** end-to-end verified on macOS Apple Silicon. Other platforms are not yet verified end to end. The extension interface is currently in Simplified Chinese. This is an independent project, not an OpenAI product.
 
 ## Install and use
 
