@@ -27,7 +27,7 @@
 | 操作 | 使用方式 |
 | --- | --- |
 | 查找对话 | 选择当前项目或全部项目，再输入标题关键词。 |
-| 判断新旧 | 每行左侧为标题，右侧为**最后更新时间**，项目内按更新时间从新到旧排列。「昨天」「10/17」用于粗略筛选，不代表创建时间。 |
+| 判断新旧 | 每行左侧为标题，右侧为**最后更新时间**，项目内按更新时间从新到旧排列。「昨天」「10/17」用于粗略筛选，不代表创建时间；视图可见时会自动更新时间标签。 |
 | 查看完整信息 | 悬停对话，查看完整标题、精确到分钟的更新时间和项目路径。浮层靠右展示，左侧留出鼠标上下切换对话的通道。 |
 | 使用键盘 | 按 Tab 聚焦对话并查看详情，按 Enter 或空格打开，按 Esc 关闭提示。 |
 | 刷新与分页 | 点击刷新图标读取最新列表，点击「加载更多对话」继续读取下一页。项目计数表示当前已加载的匹配对话数。 |
@@ -70,19 +70,26 @@
 
 ## 发布方式
 
-当前通过 CI 后打包 VSIX，并在 Marketplace 发布者后台手动上传。[发布说明](https://github.com/cixiangtao/codex-project-chats/blob/main/docs/releasing.md)包含手动发布步骤及后续自动化启用流程。自动发布因微软 Entra 发布身份尚未配置而保持停用。不会创建 GitHub Release，也不会发布 npm 包。
+使用 release-it 在本地同步版本号和生成更新日志，通过 CI 后打包 VSIX，在 Marketplace 发布者后台手动上传。公开包校验通过后再记录版本标签。具体命令参阅[发布说明](https://github.com/cixiangtao/codex-project-chats/blob/main/docs/releasing.md)。不会创建 GitHub Release，也不会发布 npm 包。
 
 ## 开发
 
-需要 Node.js 22+。
+开发使用 Node.js 24.18.0（见 `.nvmrc`）和 pnpm 12.15.0（由 `packageManager` 固定版本）。
 
 ```sh
-npm ci
-npm test
-npm run package
+pnpm install --frozen-lockfile
+pnpm run check
+pnpm run lint
+pnpm run format:check
+pnpm test
+pnpm run package
 ```
 
-源码不包含运行时 npm 依赖。TypeScript 编译到 `dist/`，VSIX 仅包含运行所需文件。
+Vitest 直接运行 TypeScript 源码测试，`pnpm run check` 同时检查扩展源码、测试和 Webview 的类型。开发时可使用 `pnpm run test:watch`。扩展宿主代码编译为 CommonJS，输出到 `dist/extension/`；`webview/src/` 中的 React + TypeScript 界面代码通过 Vite 构建到 `dist/webview/`。`media/` 仅保留图标资源。前端按应用入口、宿主通信、控件和对话功能组织，组件、Hook、功能样式与测试就近维护；详见 [Webview 开发说明](https://github.com/cixiangtao/codex-project-chats/blob/main/webview/README.md)。CI 同时检查 Oxlint 与 Oxfmt。React 与 React DOM 已合并进浏览器构建产物，VSIX 仅包含构建代码、媒体资源和公开文档，不携带 `node_modules/`。
+
+运行 `pnpm dev` 可在 `http://127.0.0.1:5173/` 查看带 React 热更新的示例界面，追加 `?lang=en` 切换英文。预览使用示例数据；实际安装的扩展加载 VSIX 内的构建产物。
+
+环境准备、示例界面预览和可选集成测试参阅 [CONTRIBUTING.md](https://github.com/cixiangtao/codex-project-chats/blob/main/CONTRIBUTING.md)。
 
 ## 接口参考
 

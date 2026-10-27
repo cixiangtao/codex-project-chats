@@ -21,7 +21,7 @@ export function parsePage(value: unknown, t: Localize = createLocalizer()): Chat
     if (!isRecord(row) || typeof row.id !== 'string' || !/^[a-z0-9_-]{8,128}$/i.test(row.id)
       || typeof row.cwd !== 'string' || !row.cwd) continue;
     const title = typeof row.name === 'string' && row.name.trim() ? row.name : typeof row.preview === 'string' ? row.preview : '';
-    chats.push({ id: row.id, title: title.replace(/\s+/g, ' ').trim().slice(0, 180) || t('untitled'), cwd: row.cwd,
+    chats.push({ id: row.id, title: title.replace(/\s+/g, ' ').trim() || t('untitled'), cwd: row.cwd,
       updatedAt: typeof row.updatedAt === 'number' && Number.isFinite(row.updatedAt) ? row.updatedAt : 0 });
   }
   return { chats, nextCursor: typeof value.nextCursor === 'string' && value.nextCursor ? value.nextCursor : null };

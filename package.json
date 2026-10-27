@@ -1,47 +1,154 @@
 {
   "name": "codex-project-chats",
   "displayName": "Codex Project Chats",
-  "description": "Browse Codex conversations by project and continue in the official Codex sidebar.",
+  "version": "1.1.1",
   "private": true,
-  "version": "1.1.0",
-  "publisher": "cixiangtao",
-  "license": "MIT",
-  "icon": "media/icon.png",
-  "preview": false,
-  "keywords": ["codex", "projects", "history", "conversations", "cwd"],
-  "engines": { "vscode": "^1.100.0", "node": ">=22" },
-  "repository": { "type": "git", "url": "https://github.com/cixiangtao/codex-project-chats.git" },
+  "description": "Browse Codex conversations by project and continue in the official Codex sidebar.",
+  "categories": [
+    "AI",
+    "Chat"
+  ],
+  "keywords": [
+    "codex",
+    "conversations",
+    "cwd",
+    "history",
+    "projects"
+  ],
   "homepage": "https://github.com/cixiangtao/codex-project-chats#readme",
-  "bugs": { "url": "https://github.com/cixiangtao/codex-project-chats/issues" },
-  "categories": ["AI", "Chat"],
-  "main": "./dist/extension.js",
-  "extensionKind": ["workspace"],
-  "extensionDependencies": ["openai.chatgpt"],
-  "capabilities": { "untrustedWorkspaces": { "supported": false }, "virtualWorkspaces": false },
-  "activationEvents": ["onView:codexProjectChats.list"],
-  "files": ["package.nls*.json", "dist/**", "media/**", "README.md", "README.zh-CN.md", "CHANGELOG.md", "SUPPORT.md", "LICENSE"],
-  "scripts": {
-    "build": "tsc -p .",
-    "check": "tsc -p . --noEmit",
-    "test": "npm run build && node --test test/*.test.cjs",
-    "package": "npm run build && vsce package --no-dependencies",
-    "vscode:prepublish": "npm run build"
+  "bugs": {
+    "url": "https://github.com/cixiangtao/codex-project-chats/issues"
   },
-  "devDependencies": { "@types/node": "^22.0.0", "@types/vscode": "~1.100.0", "@vscode/vsce": "^3.0.0", "typescript": "~5.9.0" },
-  "overrides": { "@azure/identity": "4.13.0", "uuid": "11.1.1" },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cixiangtao/codex-project-chats.git"
+  },
+  "publisher": "cixiangtao",
+  "files": [
+    "package.nls*.json",
+    "dist/**",
+    "media/**",
+    "README.md",
+    "README.zh-CN.md",
+    "CHANGELOG.md",
+    "SUPPORT.md",
+    "LICENSE"
+  ],
+  "main": "./dist/extension/extension.js",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "check": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json && tsc -p tsconfig.webview.json",
+    "dev": "vite",
+    "format": "oxfmt --write webview package.json oxlint.config.mts .oxfmtrc.json vite.config.mts vitest.config.mts",
+    "format:check": "oxfmt --check webview package.json oxlint.config.mts .oxfmtrc.json vite.config.mts vitest.config.mts",
+    "lint": "oxlint --max-warnings=0 webview",
+    "lint:fix": "pnpm run lint --fix",
+    "package": "vsce package --no-dependencies",
+    "preview": "pnpm run build && node test/preview.mjs",
+    "release:check": "node scripts/check-release.mjs",
+    "release:dry": "release-it --dry-run",
+    "release:prepare": "release-it",
+    "release:verify": "python3 scripts/marketplace.py",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "vscode:prepublish": "pnpm run build"
+  },
+  "dependencies": {
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@release-it/bumper": "8.0.1",
+    "@release-it/conventional-changelog": "12.0.2",
+    "@types/node": "^22.0.0",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@types/vscode": "~1.100.0",
+    "@vitejs/plugin-react": "6.1.2",
+    "@vscode/vsce": "^3.0.0",
+    "jsdom": "30.1.3",
+    "oxfmt": "0.74.0",
+    "oxlint": "1.89.0",
+    "release-it": "21.1.1",
+    "typescript": "~5.9.0",
+    "vite": "8.3.5",
+    "vitest": "5.0.5"
+  },
   "contributes": {
-    "viewsContainers": { "activitybar": [{ "id": "codexProjectChats", "title": "%viewContainer.title%", "icon": "media/projects.svg" }] },
-    "views": { "codexProjectChats": [{ "type": "webview", "id": "codexProjectChats.list", "name": "%view.title%", "contextualTitle": "Codex Project Chats" }] },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "codexProjectChats",
+          "title": "%viewContainer.title%",
+          "icon": "media/projects.svg"
+        }
+      ]
+    },
+    "views": {
+      "codexProjectChats": [
+        {
+          "type": "webview",
+          "id": "codexProjectChats.list",
+          "name": "%view.title%",
+          "contextualTitle": "Codex Project Chats"
+        }
+      ]
+    },
     "commands": [
-      { "command": "codexProjectChats.open", "title": "%command.open%", "category": "Codex Project Chats" },
-      { "command": "codexProjectChats.refresh", "title": "%command.refresh%", "category": "Codex Project Chats", "icon": "$(refresh)" }
+      {
+        "command": "codexProjectChats.open",
+        "title": "%command.open%",
+        "category": "Codex Project Chats"
+      },
+      {
+        "command": "codexProjectChats.refresh",
+        "title": "%command.refresh%",
+        "category": "Codex Project Chats",
+        "icon": "$(refresh)"
+      }
     ],
-    "menus": { "view/title": [{ "command": "codexProjectChats.refresh", "when": "view == codexProjectChats.list", "group": "navigation" }] },
+    "menus": {
+      "view/title": [
+        {
+          "command": "codexProjectChats.refresh",
+          "when": "view == codexProjectChats.list",
+          "group": "navigation"
+        }
+      ]
+    },
     "configuration": {
       "title": "Codex Project Chats",
       "properties": {
-        "codexProjectChats.cliPath": { "type": "string", "default": "", "scope": "machine", "description": "%configuration.cliPath%" }
+        "codexProjectChats.cliPath": {
+          "type": "string",
+          "default": "",
+          "scope": "machine",
+          "description": "%configuration.cliPath%"
+        }
       }
     }
+  },
+  "activationEvents": [
+    "onView:codexProjectChats.list"
+  ],
+  "extensionDependencies": [
+    "openai.chatgpt"
+  ],
+  "extensionKind": [
+    "workspace"
+  ],
+  "icon": "media/icon.png",
+  "preview": false,
+  "engines": {
+    "node": "^24.15.0 || >=26.0.0",
+    "vscode": "^1.100.0"
+  },
+  "packageManager": "pnpm@12.15.0",
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false
+    },
+    "virtualWorkspaces": false
   }
 }

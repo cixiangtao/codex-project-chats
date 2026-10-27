@@ -1,0 +1,37 @@
+:root {
+  --vscode-sideBar-background: #181818;
+  --vscode-sideBar-foreground: #ccc;
+  --vscode-foreground: #ccc;
+  --vscode-font-size: 13px;
+  --vscode-font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  --vscode-input-background: #313131;
+  --vscode-input-foreground: #ccc;
+  --vscode-input-placeholderForeground: #aaa;
+  --vscode-input-border: #3c3c3c;
+  --vscode-widget-border: #313131;
+  --vscode-list-activeSelectionBackground: #04395e;
+  --vscode-list-activeSelectionForeground: #fff;
+  --vscode-list-hoverBackground: #2a2d2e;
+  --vscode-descriptionForeground: #aaa;
+  --vscode-textLink-foreground: #4daafc;
+  --vscode-focusBorder: #007fd4;
+  --vscode-button-secondaryBackground: #313131;
+  --vscode-button-secondaryForeground: #ccc;
+  --vscode-button-secondaryHoverBackground: #3c3c3c;
+  --vscode-toolbar-hoverBackground: #2a2d2e;
+  --vscode-scrollbarSlider-background: #79797966;
+  --vscode-scrollbarSlider-hoverBackground: #646464b3;
+  --vscode-editor-selectionBackground: #264f78;
+  --vscode-errorForeground: #f48771;
+}
+body {
+  max-width: 360px;
+  min-height: 680px;
+  border-right: 1px solid #313131;
+}
+.preview-label {
+  padding: 7px 12px;
+  border-bottom: 1px solid #313131;
+  font-size: 11px;
+  color: #aaa;
+}

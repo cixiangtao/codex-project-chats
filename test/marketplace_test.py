@@ -27,11 +27,11 @@ class PayloadVerification(unittest.TestCase):
             marketplace.compare_payload(archive(data), archive({**data, 'extension/extra.js': 'unexpected'}))
 
     def test_allows_only_container_signature_additions(self):
-        data = {'extension/package.json': '{"version":"0.1.2"}', 'extension/dist/extension.js': 'trusted code', 'extension/readme.md': 'public docs'}
+        data = {'extension/package.json': '{"version":"0.1.2"}', 'extension/dist/extension/extension.js': 'trusted code', 'extension/readme.md': 'public docs'}
         marketplace.compare_payload(archive(data), archive(data, signing=True))
 
     def test_rejects_changed_runtime_or_documentation_and_missing_files(self):
-        data = {'extension/package.json': '{}', 'extension/dist/extension.js': 'trusted code', 'extension/readme.md': 'public docs'}
+        data = {'extension/package.json': '{}', 'extension/dist/extension/extension.js': 'trusted code', 'extension/readme.md': 'public docs'}
         for name in data:
             changed = dict(data)
             changed[name] = 'different'

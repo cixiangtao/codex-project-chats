@@ -25,7 +25,7 @@ Change the VS Code display language with **Configure Display Language**, then re
 | Action | How it works |
 | --- | --- |
 | Find a conversation | Select **Current project** for workspace roots, or **All projects** for other directories. Enter part of its title to search. |
-| Check recency | Each compact row shows its title and **last-update time**. Conversations in a project are sorted newest first. Labels such as `Yesterday` or `Oct 17` help narrow the list; they are not creation times. |
+| Check recency | Each compact row shows its title and **last-update time**. Conversations in a project are sorted newest first. Labels such as `Yesterday` or `Oct 17` help narrow the list; they are not creation times. Labels update while the view is visible. |
 | Read full details | Hover over a row to see its complete title, update time to the minute, and project path. The tooltip sits toward the right, leaving a clear mouse lane on the left for moving between rows. |
 | Use the keyboard | Press Tab to focus a conversation and reveal its details, Enter or Space to open it, and Esc to dismiss the tooltip. |
 | Refresh or load more | Use the refresh icon to fetch recent changes. Select **Load more conversations** for the next page; project counts describe loaded matches. |
@@ -77,19 +77,26 @@ If you installed the prototype as `ikun-local.codex-project-chats`, uninstall it
 
 ## Development
 
-Use Node.js 22 (see `.nvmrc`) and npm:
+Use Node.js 24.18.0 (see `.nvmrc`) and pnpm 12.15.0 (pinned in `packageManager`):
 
 ```sh
-npm ci
-npm test
-npm run package
+pnpm install --frozen-lockfile
+pnpm run check
+pnpm run lint
+pnpm run format:check
+pnpm test
+pnpm run package
 ```
 
-The VSIX is generated in the repository root. There are no runtime npm dependencies; only compiled code, local media, and public documentation are packaged. This is a VS Code extension, not an npm library (`private: true` prevents accidental npm publication).
+Vitest runs TypeScript tests directly against the source; `pnpm run check` checks extension, test, and Webview types. Use `pnpm run test:watch` while developing. The extension host compiles to CommonJS in `dist/extension/`; the React and TypeScript interface in `webview/src/` is built with Vite into `dist/webview/`. `media/` contains icons. Frontend components, hooks, feature styles, and colocated tests are organized by responsibility; see [the Webview guide](https://github.com/cixiangtao/codex-project-chats/blob/main/webview/README.md). Oxlint and Oxfmt checks run in CI.
+
+Run `pnpm dev` for the local interface preview with React Fast Refresh at `http://127.0.0.1:5173/`. It uses synthetic data; append `?lang=en` for English. The installed extension loads the packaged Vite assets through the VS Code Webview API.
+
+The VSIX is generated in the repository root. React and React DOM are bundled into the browser entry; only built code, local media, and public documentation are packaged, with no `node_modules/` directory. This is a VS Code extension, not an npm library (`private: true` prevents accidental npm publication).
 
 CI runs the tests on Linux, macOS, and Windows and inspects a VSIX on Linux. One POSIX executable fixture is explicitly skipped on Windows. These checks do not replace a real VS Code/official Codex integration test. Live-history and extension-host tests are opt-in; see [CONTRIBUTING.md](https://github.com/cixiangtao/codex-project-chats/blob/main/CONTRIBUTING.md).
 
-Repository documentation and metadata may be ahead of the last Marketplace package; editing this repository does not update an already uploaded VSIX. Marketplace releases are currently packaged and uploaded manually after CI passes. The prepared automated workflow stays disabled until its Microsoft Entra publishing identity is configured. See the [release procedure](https://github.com/cixiangtao/codex-project-chats/blob/main/docs/releasing.md). No GitHub Release or npm package is created.
+Repository documentation and metadata may be ahead of the last Marketplace package; editing this repository does not update an already uploaded VSIX. release-it prepares the version and changelog locally; Marketplace packages are uploaded manually after CI passes, then verified before tagging. See the [release procedure](https://github.com/cixiangtao/codex-project-chats/blob/main/docs/releasing.md). No GitHub Release or npm package is created.
 
 ## Support and license
 

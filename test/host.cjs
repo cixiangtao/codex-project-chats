@@ -25,7 +25,7 @@ exports.run = async () => {
   let routingVerified = false;
   let noEditorCreated = false;
   if (process.env.PROJECT_CHATS_TEST_THREAD) {
-    const { openInCodex } = require('../dist/routing.js');
+    const { openInCodex } = require('../dist/extension/routing.js');
     const tabsBefore = vscode.window.tabGroups.all.flatMap(group => group.tabs).length;
     await openInCodex(process.env.PROJECT_CHATS_TEST_THREAD);
     const logRoot = path.join(process.env.PROJECT_CHATS_TEST_WORK, 'vscode-user', 'logs');
