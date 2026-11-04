@@ -12,6 +12,7 @@ import { loadWebviewAssets } from './webview-assets';
 const t = createLocalizer(vscode.env.language);
 const VIEW_ID = 'codexProjectChats.list';
 const OFFICIAL_ID = 'openai.chatgpt';
+const AUTO_REFRESH_MS = 5_000;
 
 async function getBinary(): Promise<string> {
   const configured = vscode.workspace.getConfiguration('codexProjectChats').get<string>('cliPath', '').trim();
@@ -51,14 +52,16 @@ class ProjectChatsView implements vscode.WebviewViewProvider, vscode.Disposable 
   private chats: Chat[] = [];
   private roots: string[] = [];
   private cursor: string | null = null;
+  private loadedPages = 1;
   private generation = 0;
+  private loading = false;
   private busy = false;
   private opening: string | null = null;
   private error = '';
   private ready = false;
   private disposed = false;
-  private lastRefresh: number | null = null;
-  private timer?: ReturnType<typeof setTimeout>;
+  private searchTimer?: ReturnType<typeof setTimeout>;
+  private autoRefreshTimer?: ReturnType<typeof setTimeout>;
 
   constructor(private readonly context: vscode.ExtensionContext) {
     this.scope = context.workspaceState.get<Scope>('scope', 'current');
@@ -74,7 +77,9 @@ class ProjectChatsView implements vscode.WebviewViewProvider, vscode.Disposable 
         if (this.view === view) void this.handle(message);
       }),
       view.onDidChangeVisibility(() => {
-        if (this.view === view && view.visible && this.ready && Date.now() - (this.lastRefresh ?? 0) > 30_000) void this.refresh();
+        if (this.view !== view) return;
+        this.clearAutoRefresh();
+        if (view.visible) void this.autoRefresh();
       }),
       view.onDidDispose(() => this.releaseView(view)),
     ];
@@ -90,14 +95,16 @@ class ProjectChatsView implements vscode.WebviewViewProvider, vscode.Disposable 
       .replaceAll('{{SCRIPT}}', () => asset(assets.script));
   }
 
-  /** A view owns its subscriptions, debounce work, and list-service connection. */
+  /** A view owns its subscriptions, refresh timers, and list-service connection. */
   private releaseView(view = this.view): void {
     if (view !== this.view) return;
     this.view = undefined;
     this.ready = false;
     this.generation++;
-    clearTimeout(this.timer);
-    this.timer = undefined;
+    clearTimeout(this.searchTimer);
+    this.searchTimer = undefined;
+    this.clearAutoRefresh();
+    this.loading = false;
     this.busy = false;
     this.client?.dispose();
     this.client = undefined;
@@ -119,51 +126,104 @@ class ProjectChatsView implements vscode.WebviewViewProvider, vscode.Disposable 
       case 'more': if (!this.busy && this.cursor) await this.load(true); break;
       case 'scope':
         this.scope = message.value;
-        await this.context.workspaceState.update('scope', this.scope);
-        await this.refresh();
+        // Invalidate the old query immediately; persisting the preference must not delay it.
+        await Promise.all([this.refresh(), this.context.workspaceState.update('scope', this.scope)]);
         break;
       case 'search':
         this.search = message.value;
-        clearTimeout(this.timer);
+        clearTimeout(this.searchTimer);
+        this.clearAutoRefresh();
         // Invalidate in-flight requests immediately, before the debounce window ends.
         this.generation++;
-        this.timer = setTimeout(() => { void this.refresh(); }, 220);
+        this.searchTimer = setTimeout(() => { void this.refresh(); }, 220);
         break;
       case 'open': await this.open(message.id); break;
     }
   }
 
   async refresh(): Promise<void> {
-    clearTimeout(this.timer);
+    clearTimeout(this.searchTimer);
+    this.searchTimer = undefined;
     if (!this.disposed && this.view && this.ready) await this.load(false);
   }
 
-  private async load(append: boolean): Promise<void> {
+  private clearAutoRefresh(): void {
+    clearTimeout(this.autoRefreshTimer);
+    this.autoRefreshTimer = undefined;
+  }
+
+  /** Poll stored metadata only while visible; this client owns a separate app-server. */
+  private async autoRefresh(): Promise<void> {
+    if (!this.view?.visible || !this.ready || this.disposed || this.loading || this.searchTimer) return;
+    await this.load(false, true);
+  }
+
+  private scheduleAutoRefresh(): void {
+    this.clearAutoRefresh();
+    if (!this.view?.visible || !this.ready || this.disposed || this.searchTimer) return;
+    this.autoRefreshTimer = setTimeout(() => {
+      this.autoRefreshTimer = undefined;
+      void this.autoRefresh();
+    }, AUTO_REFRESH_MS);
+  }
+
+  private async load(append: boolean, background = false): Promise<void> {
     if (this.disposed || !this.view || !this.ready) return;
+    this.clearAutoRefresh();
     const generation = ++this.generation;
-    this.busy = true; this.error = '';
-    if (!append) { this.chats = []; this.cursor = null; }
-    this.send();
+    this.loading = true;
+    this.busy = !background;
+    let changed = false;
+    if (!background) {
+      this.error = '';
+      if (!append) { this.chats = []; this.cursor = null; this.loadedPages = 1; }
+      this.send();
+    }
     try {
       const roots = await workspaceRoots();
       if (!this.isCurrent(generation)) return;
+      let chats = append ? this.chats : [];
+      let cursor = append ? this.cursor : null;
+      let pages = 0;
+      if (this.scope !== 'current' || roots.length) {
+        const binary = await getBinary();
+        if (!this.isCurrent(generation)) return;
+        if (!this.client || binary !== this.binary) { this.client?.dispose(); this.client = new CodexClient(binary, this.context.extension.packageJSON.version, vscode.env.language); this.binary = binary; }
+        // Rebuild every loaded page so removals and changed ordering cannot leave a stale tail.
+        const pageLimit = background ? this.loadedPages : 1;
+        do {
+          const page = await this.client.list(this.scope === 'current' ? roots : undefined, this.search, cursor);
+          if (!this.isCurrent(generation)) return;
+          chats = [...new Map([...chats, ...page.chats].map(chat => [chat.id, chat])).values()];
+          cursor = page.nextCursor;
+          pages++;
+        } while (cursor && pages < pageLimit);
+      }
+      changed = this.error !== '' || cursor !== this.cursor || roots.length !== this.roots.length
+        || roots.some((root, index) => root !== this.roots[index]) || chats.length !== this.chats.length
+        || chats.some((chat, index) => {
+          const previous = this.chats[index];
+          return !previous || chat.id !== previous.id || chat.title !== previous.title
+            || chat.cwd !== previous.cwd || chat.recencyAt !== previous.recencyAt;
+        });
       this.roots = roots;
-      if (this.scope === 'current' && !roots.length) { this.lastRefresh = Date.now(); return; }
-      const binary = await getBinary();
-      if (!this.isCurrent(generation)) return;
-      if (!this.client || binary !== this.binary) { this.client?.dispose(); this.client = new CodexClient(binary, this.context.extension.packageJSON.version, vscode.env.language); this.binary = binary; }
-      const page = await this.client.list(this.scope === 'current' ? roots : undefined, this.search, append ? this.cursor : null);
-      if (!this.isCurrent(generation)) return;
-      this.chats = [...new Map([...this.chats, ...page.chats].map(chat => [chat.id, chat])).values()];
-      this.cursor = page.nextCursor;
-      this.lastRefresh = Date.now();
+      this.chats = chats;
+      this.cursor = cursor;
+      this.loadedPages = append ? this.loadedPages + pages : Math.max(1, pages);
+      this.error = '';
     } catch (error) {
       if (this.isCurrent(generation)) {
-        this.error = error instanceof Error ? error.message : t('errorReadFailed');
+        const message = error instanceof Error ? error.message : t('errorReadFailed');
+        changed = this.error !== message;
+        this.error = message;
         this.client?.dispose(); this.client = undefined;
       }
     } finally {
-      if (this.isCurrent(generation)) { this.busy = false; this.send(); }
+      if (this.isCurrent(generation)) {
+        this.loading = false; this.busy = false;
+        if (!background || changed) this.send();
+        this.scheduleAutoRefresh();
+      }
     }
   }
 
