@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.3](https://github.com/cixiangtao/codex-project-chats/compare/v1.1.2...v1.1.3) (2026-11-04)
+
+### Bug Fixes
+
+* **conversations:** 🐛 refresh visible history automatically ([d5b29cb](https://github.com/cixiangtao/codex-project-chats/commit/d5b29cbcc35c702d7250461f5f5b4a4281af1377))
+
 ## [1.1.2](https://github.com/cixiangtao/codex-project-chats/compare/v1.1.1...v1.1.2) (2026-10-27)
 
 ### Bug Fixes
