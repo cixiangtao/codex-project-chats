@@ -28,7 +28,7 @@ Change the VS Code display language with **Configure Display Language**, then re
 | Check recency | Each compact row shows its title and **conversation recency**. Display and sorting both use Codex’s `recencyAt` field, rather than the record update time or the last reply time. Conversations in a project are sorted newest first. Labels such as `Yesterday` or `Oct 17` help narrow the list; they are not creation times. Labels update while the view is visible. |
 | Read full details | Hover over a row to see its complete title, conversation recency to the minute, and project path. The tooltip sits toward the right, leaving a clear mouse lane on the left for moving between rows. |
 | Use the keyboard | Press Tab to focus a conversation and reveal its details, Enter or Space to open it, and Esc to dismiss the tooltip. |
-| Refresh or load more | Use the refresh icon to fetch recent changes. Select **Load more conversations** for the next page; project counts describe loaded matches. |
+| Refresh or load more | The visible list updates automatically and checks again five seconds after each query finishes. Updates pause while hidden and resume immediately when the view returns. Use the refresh icon to check immediately. Select **Load more conversations** for the next page; project counts describe loaded matches. |
 
 Long titles are shortened in the list. Full details wrap in the tooltip, with scrolling for unusually long content. Missing recency metadata is labeled **Unknown**.
 
@@ -49,6 +49,7 @@ Hover details show the full title, conversation recency, and path while leaving 
 - Groups conversations by exact working directory, with the current project first.
 - Supports multi-root workspaces and real paths for symlinked workspace roots. Subdirectories and Git worktrees remain separate groups.
 - Searches titles on the server before pagination. Each page contains up to 50 conversations; **Load more conversations** loads the next page. Counts describe the loaded results.
+- Automatically refreshes the pages already loaded, keeping the current list visible during updates. Unchanged results leave the interface and hover details untouched.
 - Shows non-archived, interactive local conversations; excludes subagents and batch sessions.
 - Distinguishes projects with identical folder names by their paths.
 - Temporarily expands search matches and restores the previous collapse state when the search is cleared.
