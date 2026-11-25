@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.4](https://github.com/cixiangtao/codex-project-chats/compare/v1.1.3...v1.1.4) (2026-11-25)
+
+### Bug Fixes
+
+* **search:** 🐛 discard the previous cursor when the search changes ([640c98b](https://github.com/cixiangtao/codex-project-chats/commit/640c98bf43aa655b0f54163fd0a1753fbcc582bc))
+
 ## [1.1.3](https://github.com/cixiangtao/codex-project-chats/compare/v1.1.2...v1.1.3) (2026-11-04)
 
 ### Bug Fixes
