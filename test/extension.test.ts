@@ -112,6 +112,27 @@ test('a closed view ignores an outstanding response and cannot publish stale sta
   expect(fixture.postMessage).toHaveBeenCalledTimes(sent);
 });
 
+test('load more during search debounce cannot reuse the previous search cursor', async () => {
+  mocks.list.mockResolvedValueOnce({ ...page('thread-old'), nextCursor: 'old-second' })
+    .mockResolvedValueOnce({ ...page('thread-match'), nextCursor: 'matching-second' })
+    .mockResolvedValueOnce(page('thread-match-two'));
+  const fixture = await setup();
+  await fixture.ready();
+  fixture.messages.fire({ type: 'search', value: 'match' });
+  fixture.messages.fire({ type: 'more' });
+  await vi.advanceTimersByTimeAsync(220);
+  expect(mocks.list.mock.calls).toEqual([
+    [['/fixture'], '', null],
+    [['/fixture'], 'match', null],
+  ]);
+  fixture.messages.fire({ type: 'more' });
+  await vi.advanceTimersByTimeAsync(0);
+  expect(mocks.list).toHaveBeenLastCalledWith(['/fixture'], 'match', 'matching-second');
+  expect(fixture.postMessage.mock.calls.at(-1)?.[0]).toMatchObject({
+    count: 2, groups: [{ chats: [{ id: 'thread-match' }, { id: 'thread-match-two' }] }],
+  });
+});
+
 test('a slower old search cannot replace a newer result', async () => {
   const older = Promise.withResolvers<ChatPage>();
   mocks.list.mockReturnValueOnce(older.promise).mockResolvedValueOnce(page('thread-newer'));

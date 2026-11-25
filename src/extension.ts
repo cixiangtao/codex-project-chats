@@ -131,6 +131,8 @@ class ProjectChatsView implements vscode.WebviewViewProvider, vscode.Disposable 
         break;
       case 'search':
         this.search = message.value;
+        // The previous list's cursor cannot paginate the new search.
+        this.cursor = null;
         clearTimeout(this.searchTimer);
         this.clearAutoRefresh();
         // Invalidate in-flight requests immediately, before the debounce window ends.
